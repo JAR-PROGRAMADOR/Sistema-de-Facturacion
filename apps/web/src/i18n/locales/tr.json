@@ -1,0 +1,3 @@
+{ "app": { "title": "Fatura platformu", "subtitle": "İşletme yönetimi" },
+  "status": { "api": "API", "loading": "Kontrol ediliyor…", "ok": "Bağlı", "error": "API'ye ulaşılamıyor" },
+  "language": "Dil" }

@@ -1,0 +1,3 @@
+{ "app": { "title": "請求管理プラットフォーム", "subtitle": "企業管理" },
+  "status": { "api": "API", "loading": "確認中…", "ok": "接続済み", "error": "API に接続できません" },
+  "language": "言語" }

@@ -1,0 +1,3 @@
+{ "app": { "title": "Invoicing platform", "subtitle": "Business management" },
+  "status": { "api": "API", "loading": "Checking…", "ok": "Connected", "error": "Cannot reach the API" },
+  "language": "Language" }

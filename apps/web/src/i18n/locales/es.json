@@ -1,0 +1,3 @@
+{ "app": { "title": "Plataforma de facturación", "subtitle": "Gestión empresarial" },
+  "status": { "api": "API", "loading": "Comprobando…", "ok": "Conectada", "error": "Sin conexión con la API" },
+  "language": "Idioma" }

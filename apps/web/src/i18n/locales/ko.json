@@ -1,0 +1,3 @@
+{ "app": { "title": "청구서 관리 플랫폼", "subtitle": "기업 관리" },
+  "status": { "api": "API", "loading": "확인 중…", "ok": "연결됨", "error": "API에 연결할 수 없습니다" },
+  "language": "언어" }

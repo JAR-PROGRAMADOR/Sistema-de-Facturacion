@@ -1,0 +1,3 @@
+{ "app": { "title": "发票管理平台", "subtitle": "企业管理" },
+  "status": { "api": "API", "loading": "正在检查…", "ok": "已连接", "error": "无法连接到 API" },
+  "language": "语言" }
