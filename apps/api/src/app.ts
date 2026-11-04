@@ -1,7 +1,11 @@
+import { existsSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
+import fastifyStatic from '@fastify/static';
 import type { Pool } from 'pg';
 import type { Env } from './config/env.js';
 import { registerErrorHandling } from './shared/errors.js';
@@ -46,6 +50,30 @@ export async function buildApp({ env, pool }: BuildAppOptions) {
   await app.register(rateLimit, { max: 300, timeWindow: '1 minute' });
 
   registerErrorHandling(app);
+
+  const webRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../web/dist');
+  if (existsSync(resolve(webRoot, 'index.html'))) {
+    await app.register(fastifyStatic, {
+      root: resolve(webRoot, 'assets'),
+      prefix: '/assets/',
+      wildcard: false,
+    });
+
+    app.get('/', async (_request, reply) =>
+      reply.type('text/html').sendFile('index.html', webRoot),
+    );
+    app.get<{ Params: { asset: string } }>('/assets/:asset', async (request, reply) =>
+      reply.sendFile(request.params.asset),
+    );
+    app.get('/*', async (request, reply) => {
+      if (request.url.startsWith('/api/')) {
+        return reply.status(404).send({
+          error: { code: 'NOT_FOUND', message: 'El recurso solicitado no existe.' },
+        });
+      }
+      return reply.type('text/html').sendFile('index.html', webRoot);
+    });
+  }
 
   await app.register(healthRoutes, { prefix: '/api/v1' });
 

@@ -28,3 +28,10 @@ Base local (se usa desde la FASE 2): `docker compose up -d db`
 ## Convenciones de la API
 - Prefijo `/api/v1`
 - Éxito: `{ "data": ... }`. Error: `{ "error": { "code", "message", "details?" } }`
+
+## Despliegue en Render
+- Build Command: `npm install; npm run build`
+- Start Command: `npm start --workspace=@facturacion/api`
+- La API sirve el frontend compilado desde la raíz y atiende las rutas `/api/v1`.
+- Configura `DATABASE_URL` y `JWT_ACCESS_SECRET` (mínimo 32 caracteres) en las variables de entorno del servicio. Sin `DATABASE_URL`, solo estará disponible `/api/v1/health`; no funcionarán el registro ni el inicio de sesión.
+- Aplica las migraciones a la base de datos antes de usar la aplicación.
