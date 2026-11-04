@@ -36,7 +36,7 @@ export async function assertLicenseAccess(
   claims: AccessClaims,
   request: { method: string; url: string },
 ): Promise<void> {
-  const path = request.url.split('?')[0];
+  const path = request.url.split('?', 1)[0] ?? '';
 
   if (claims.plat || !claims.cid) return;
   if (path.startsWith('/api/v1/platform/')) return;

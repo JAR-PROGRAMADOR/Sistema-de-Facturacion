@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Plataforma de facturación y gestión empresarial
 
 Monorepo Full Stack (TypeScript): `apps/api` (Fastify) y `apps/web` (React + Vite). Base de datos: PostgreSQL.
@@ -26,3 +27,6 @@ Base local (se usa desde la FASE 2): `docker compose up -d db`
 ## Convenciones de la API
 - Prefijo `/api/v1`
 - Éxito: `{ "data": ... }`. Error: `{ "error": { "code", "message", "details?" } }`
+=======
+# Sistema-de-Facturacion
+>>>>>>> a1acb815b9ed6c2f551553a4e5ffc9165845d892
