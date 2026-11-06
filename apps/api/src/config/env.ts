@@ -5,7 +5,7 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
   HOST: z.string().default('0.0.0.0'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
-  CORS_ORIGIN: z.string().default('http://localhost:5173'),
+  CORS_ORIGIN: z.string().default('https://sistema-de-facturacion-op8d.onrender.com/'),
 
   // Conexión de la aplicación (rol app_user, sujeto a RLS).
   DATABASE_URL: z.string().optional(),
@@ -22,7 +22,7 @@ const envSchema = z.object({
   LOGIN_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(10),
 
   // Recuperación de contraseña y 2FA (FASE 3b)
-  FRONTEND_URL: z.string().default('http://localhost:5173'),
+  FRONTEND_URL: z.string().default('https://sistema-de-facturacion-op8d.onrender.com/'),
   PASSWORD_RESET_TTL_MINUTES: z.coerce.number().int().positive().default(60),
   RESEND_API_KEY: z.string().optional(),
   RESEND_FROM_EMAIL: z.string().optional(),
