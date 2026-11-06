@@ -28,6 +28,9 @@ describe.skipIf(!enabled)('Licencias (FASE 5)', () => {
   const userEmail = `lic-user-${randomUUID()}@example.test`;
   const userPassword = 'clave-usuario-larga-456';
   let userToken: string;
+  let registrationLicenseId: string | undefined;
+  let registrationCompanyId: string | undefined;
+  let registrationUserId: string | undefined;
 
   beforeAll(async () => {
     admin = new pg.Pool({ connectionString: process.env.DATABASE_ADMIN_URL });
@@ -51,12 +54,30 @@ describe.skipIf(!enabled)('Licencias (FASE 5)', () => {
     app = await buildApp({ env, pool });
 
     const platformLogin = await app.inject({ method: 'POST', url: '/api/v1/auth/login', payload: { email: platformEmail, password: platformPassword } });
+    expect(platformLogin.statusCode, JSON.stringify(platformLogin.json())).toBe(200);
     platformToken = platformLogin.json().data.accessToken;
     const userLogin = await app.inject({ method: 'POST', url: '/api/v1/auth/login', payload: { email: userEmail, password: userPassword } });
+    expect(userLogin.statusCode, JSON.stringify(userLogin.json())).toBe(200);
     userToken = userLogin.json().data.accessToken;
   }, REMOTE_DB_TIMEOUT_MS);
 
   afterAll(async () => {
+    if (registrationLicenseId) {
+      await admin.query(`DELETE FROM registration_licenses WHERE id = $1`, [registrationLicenseId]);
+    }
+    if (registrationCompanyId) {
+      await admin.query(`DELETE FROM audit_logs WHERE company_id = $1`, [registrationCompanyId]);
+      await admin.query(`DELETE FROM user_licenses WHERE company_id = $1`, [registrationCompanyId]);
+      await admin.query(`DELETE FROM licenses WHERE company_id = $1`, [registrationCompanyId]);
+      await admin.query(`DELETE FROM sessions WHERE company_id = $1`, [registrationCompanyId]);
+      await admin.query(`DELETE FROM company_users WHERE company_id = $1`, [registrationCompanyId]);
+      await admin.query(`DELETE FROM role_permissions WHERE company_id = $1`, [registrationCompanyId]);
+      await admin.query(`DELETE FROM roles WHERE company_id = $1`, [registrationCompanyId]);
+      await admin.query(`DELETE FROM companies WHERE id = $1`, [registrationCompanyId]);
+      if (registrationUserId) {
+        await admin.query(`DELETE FROM users WHERE id = $1`, [registrationUserId]);
+      }
+    }
     await admin.query(`DELETE FROM user_licenses WHERE company_id = $1`, [companyId]);
     await admin.query(`DELETE FROM licenses WHERE company_id = $1`, [companyId]);
     await admin.query(`DELETE FROM sessions WHERE company_id = $1`, [companyId]);
@@ -88,6 +109,46 @@ describe.skipIf(!enabled)('Licencias (FASE 5)', () => {
     expect(res.statusCode).toBe(403);
   }, REMOTE_DB_TIMEOUT_MS);
 
+  it('registra una empresa y activa ambas licencias con una clave de alta', async () => {
+    const issued = await app.inject({
+      method: 'POST', url: '/api/v1/platform/registration-licenses',
+      headers: { authorization: `Bearer ${platformToken}` },
+      payload: { durationSeconds: 3600, maxUsers: 5 },
+    });
+    expect(issued.statusCode).toBe(201);
+    registrationLicenseId = issued.json().data.id;
+
+    const email = `registration-${randomUUID()}@example.test`;
+    const registered = await app.inject({
+      method: 'POST', url: '/api/v1/auth/register',
+      payload: {
+        name: 'Empresa con clave de alta',
+        fullName: 'Administradora de registro',
+        email,
+        password: 'clave-registro-larga-789',
+        licenseKey: issued.json().data.key,
+      },
+    });
+    expect(registered.statusCode).toBe(201);
+    expect(registered.json().data.licenseActivated).toBe(true);
+    registrationCompanyId = registered.json().data.company.id;
+
+    const login = await app.inject({
+      method: 'POST', url: '/api/v1/auth/login',
+      payload: { email, password: 'clave-registro-larga-789' },
+    });
+    expect(login.statusCode).toBe(200);
+    registrationUserId = login.json().data.user.id;
+
+    const status = await app.inject({
+      method: 'GET', url: '/api/v1/license-status',
+      headers: { authorization: `Bearer ${login.json().data.accessToken}` },
+    });
+    expect(status.statusCode).toBe(200);
+    expect(status.json().data.company.active).toBe(true);
+    expect(status.json().data.user.active).toBe(true);
+  }, REMOTE_DB_TIMEOUT_MS);
+
   it('emitir, canjear y que la misma clave no sirva una segunda vez', async () => {
     const issue = await app.inject({
       method: 'POST', url: '/api/v1/platform/licenses',
@@ -99,15 +160,16 @@ describe.skipIf(!enabled)('Licencias (FASE 5)', () => {
     expect(typeof key).toBe('string');
 
     const first = await app.inject({
-      method: 'POST', url: '/api/v1/licenses/redeem',
+      method: 'POST', url: '/api/v1/licenses/activate',
       headers: { authorization: `Bearer ${userToken}` },
       payload: { key },
     });
     expect(first.statusCode).toBe(200);
+    expect(first.json().data.scope).toBe('company');
     expect(first.json().data.status).toBe('ACTIVA');
 
     const second = await app.inject({
-      method: 'POST', url: '/api/v1/licenses/redeem',
+      method: 'POST', url: '/api/v1/licenses/activate',
       headers: { authorization: `Bearer ${userToken}` },
       payload: { key },
     });
@@ -133,12 +195,35 @@ describe.skipIf(!enabled)('Licencias (FASE 5)', () => {
     expect(issue.statusCode).toBe(201);
     const key = issue.json().data.key as string;
 
+    const listed = await app.inject({
+      method: 'GET', url: `/api/v1/platform/companies/${companyId}/users/${userId}/licenses`,
+      headers: { authorization: `Bearer ${platformToken}` },
+    });
+    expect(listed.statusCode).toBe(200);
+    expect(listed.json().data.some((license: { id: string; status: string }) =>
+      license.id === issue.json().data.id && license.status === 'PENDIENTE')).toBe(true);
+
     const redeem = await app.inject({
-      method: 'POST', url: '/api/v1/user-licenses/redeem',
+      method: 'POST', url: '/api/v1/licenses/activate',
       headers: { authorization: `Bearer ${userToken}` },
       payload: { key },
     });
     expect(redeem.statusCode).toBe(200);
+    expect(redeem.json().data.scope).toBe('user');
+
+    const suspend = await app.inject({
+      method: 'POST', url: `/api/v1/platform/user-licenses/${issue.json().data.id}/suspend`,
+      headers: { authorization: `Bearer ${platformToken}` },
+    });
+    expect(suspend.statusCode).toBe(200);
+    expect(suspend.json().data.status).toBe('SUSPENDIDA');
+
+    const reactivate = await app.inject({
+      method: 'POST', url: `/api/v1/platform/user-licenses/${issue.json().data.id}/reactivate`,
+      headers: { authorization: `Bearer ${platformToken}` },
+    });
+    expect(reactivate.statusCode).toBe(200);
+    expect(reactivate.json().data.status).toBe('ACTIVA');
 
     const status = await app.inject({
       method: 'GET', url: '/api/v1/license-status',

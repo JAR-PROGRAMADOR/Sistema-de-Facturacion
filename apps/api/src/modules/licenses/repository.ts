@@ -22,6 +22,14 @@ export interface UserLicenseRow {
   created_at: Date;
 }
 
+export interface RegistrationLicenseRow {
+  id: string;
+  status: string;
+  duration_seconds: string;
+  max_users: number;
+  created_at: Date;
+}
+
 // ---------------------------------------------------------------- licencias de empresa
 
 export async function insertLicense(
@@ -86,6 +94,19 @@ export async function insertUserLicense(
   return r.rows[0]!;
 }
 
+export async function insertRegistrationLicense(
+  c: PoolClient,
+  p: { keyHash: string; durationSeconds: number; maxUsers: number; createdBy: string | null },
+): Promise<RegistrationLicenseRow> {
+  const r = await c.query<RegistrationLicenseRow>(
+    `INSERT INTO registration_licenses (key_hash, duration_seconds, max_users, created_by)
+     VALUES ($1, $2, $3, $4)
+     RETURNING id, status, duration_seconds, max_users, created_at`,
+    [p.keyHash, p.durationSeconds, p.maxUsers, p.createdBy],
+  );
+  return r.rows[0]!;
+}
+
 export async function listUserLicenses(c: PoolClient, companyId: string, userId: string): Promise<UserLicenseRow[]> {
   const r = await c.query<UserLicenseRow>(
     `SELECT id, company_id, user_id, status, duration_seconds, starts_at, expires_at, created_at
@@ -93,6 +114,23 @@ export async function listUserLicenses(c: PoolClient, companyId: string, userId:
     [companyId, userId],
   );
   return r.rows;
+}
+
+export async function getUserLicense(c: PoolClient, id: string): Promise<UserLicenseRow | null> {
+  const r = await c.query<UserLicenseRow>(
+    `SELECT id, company_id, user_id, status, duration_seconds, starts_at, expires_at, created_at
+       FROM user_licenses WHERE id = $1`,
+    [id],
+  );
+  return r.rows[0] ?? null;
+}
+
+export async function setUserLicenseStatus(
+  c: PoolClient,
+  id: string,
+  status: 'SUSPENDIDA' | 'REVOCADA' | 'ACTIVA',
+): Promise<void> {
+  await c.query('SELECT set_user_license_status($1, $2)', [id, status]);
 }
 
 export async function hasActiveUserLicense(c: PoolClient, companyId: string, userId: string): Promise<boolean> {

@@ -5,6 +5,7 @@ import { AppError } from '../../shared/errors.js';
 import { hashPassword } from '../auth/password.js';
 import { insertAudit } from '../auth/repository.js';
 import type { AuthContext } from '../auth/service.js';
+import { redeemRegistrationLicenseOnClient } from '../licenses/service.js';
 
 import * as repo from './repository.js';
 import type { CreateCompanyInput, UpdateCompanyInput } from './schema.js';
@@ -22,6 +23,7 @@ export async function createCompany(
   input: CreateCompanyInput,
   meta: RequestMeta,
   adminPassword?: string,
+  registrationLicenseKey?: string,
 ): Promise<repo.CompanyRow & { adminRoleId?: string; vendorRoleId?: string; adminUserCreated?: boolean; adminUserId?: string | null }> {
   const id = randomUUID();
 
@@ -66,6 +68,14 @@ export async function createCompany(
         [id, adminUserId, defaultRoles.adminRoleId],
       );
       adminUserCreated = true;
+    }
+
+    if (registrationLicenseKey) {
+      if (!adminUserId) {
+        throw new AppError('INVALID_REGISTRATION_LICENSE', 'La clave de registro requiere una cuenta administradora.', 400);
+      }
+      await applyContext(c, { platform: true, companyId: id, userId: adminUserId });
+      await redeemRegistrationLicenseOnClient(c, { companyId: id, userId: adminUserId }, registrationLicenseKey);
     }
 
     await insertAudit(c, {

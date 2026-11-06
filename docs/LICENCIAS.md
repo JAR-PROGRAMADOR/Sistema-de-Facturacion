@@ -33,6 +33,17 @@ ACTIVA     →  "vencida" en la práctica cuando expires_at < ahora (no cambia e
    `expires_at = ahora + duración`.
 3. El superadministrador puede `suspend`, `revoke` o `reactivate` una licencia ya emitida.
 
+## Clave de registro
+La plataforma también puede emitir una clave de registro de un solo uso con
+`POST /platform/registration-licenses`. El formulario público acepta esa clave junto con
+los datos de la empresa y su administrador. El canje ocurre dentro de la transacción de
+registro y crea las licencias activas de empresa y usuario con la vigencia y el cupo de la
+clave. Si la clave no es válida o ya se usó, no se crea la cuenta. La clave se guarda como
+hash y su vigencia empieza al registrarse.
+
+Las claves tradicionales de empresa y usuario siguen disponibles para renovaciones y para
+administrar licencias de cuentas ya existentes.
+
 ## Por qué el canje necesita una función SQL especial
 Las políticas de seguridad por fila (RLS) de `licenses` y `user_licenses` solo dejan
 `UPDATE` a la plataforma — a propósito, para que una empresa nunca pueda cambiarle el

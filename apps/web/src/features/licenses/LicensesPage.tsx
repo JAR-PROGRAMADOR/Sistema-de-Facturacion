@@ -8,6 +8,7 @@ import { useUsers } from '../users/api';
 import {
   useCompanyLicenses,
   useIssueCompanyLicense,
+  useIssueRegistrationLicense,
   useIssueUserLicense,
   useSetLicenseStatus,
   useUserLicenses,
@@ -23,6 +24,7 @@ export function LicensesPage() {
   const [companyDays, setCompanyDays] = useState(365);
   const [maxUsers, setMaxUsers] = useState(5);
   const [userDays, setUserDays] = useState(365);
+  const [registrationDays, setRegistrationDays] = useState(365);
   const [userId, setUserId] = useState('');
   const [issuedKey, setIssuedKey] = useState<{ key: string; label: string } | null>(null);
 
@@ -30,6 +32,7 @@ export function LicensesPage() {
   const companyLicenses = useCompanyLicenses(companyId);
   const userLicenses = useUserLicenses(companyId, userId);
   const createCompany = useIssueCompanyLicense(companyId);
+  const createRegistration = useIssueRegistrationLicense();
   const createUser = useIssueUserLicense(companyId, userId);
   const changeCompanyStatus = useSetLicenseStatus(companyId, 'company');
   const changeUserStatus = useSetLicenseStatus(companyId, 'user', userId);
@@ -41,7 +44,7 @@ export function LicensesPage() {
     if (!companyId) return;
     try {
       const result = await createCompany.mutateAsync({ durationSeconds: Number(companyDays) * 86_400, maxUsers: Number(maxUsers) });
-      setIssuedKey({ key: result.activationKey, label: 'Clave de licencia de empresa' });
+      setIssuedKey({ key: result.key, label: 'Clave de licencia de empresa' });
       push('success', 'Licencia de empresa emitida. Copia la clave ahora; no volverá a mostrarse.');
     } catch (error) {
       push('error', error instanceof ApiError ? error.message : 'No fue posible emitir la licencia.');
@@ -53,10 +56,24 @@ export function LicensesPage() {
     if (!companyId || !userId) return;
     try {
       const result = await createUser.mutateAsync({ durationSeconds: Number(userDays) * 86_400 });
-      setIssuedKey({ key: result.activationKey, label: 'Clave de licencia de usuario' });
+      setIssuedKey({ key: result.key, label: 'Clave de licencia de usuario' });
       push('success', 'Licencia de usuario emitida. Copia la clave ahora; no volverá a mostrarse.');
     } catch (error) {
       push('error', error instanceof ApiError ? error.message : 'No fue posible emitir la licencia de usuario.');
+    }
+  };
+
+  const submitRegistrationLicense = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    try {
+      const result = await createRegistration.mutateAsync({
+        durationSeconds: Number(registrationDays) * 86_400,
+        maxUsers: Number(maxUsers),
+      });
+      setIssuedKey({ key: result.key, label: 'Clave de registro de un solo uso' });
+      push('success', 'Clave de registro emitida. Al canjearla se activarán ambas licencias.');
+    } catch (error) {
+      push('error', error instanceof ApiError ? error.message : 'No fue posible emitir la clave de registro.');
     }
   };
 
@@ -104,6 +121,16 @@ export function LicensesPage() {
             ))}</tbody>
           </table></div>
         )}
+      </section>
+
+      <section className="card">
+        <h2>Clave para un nuevo registro</h2>
+        <p className="muted">Canjearla durante el registro activa la licencia de empresa y la del usuario administrador. Cada clave se usa una sola vez.</p>
+        <form className="grid-2" onSubmit={submitRegistrationLicense}>
+          <label className="field"><span>Vigencia (días)</span><input className="input" type="number" min="1" max="3650" value={registrationDays} onChange={(event) => setRegistrationDays(Number(event.target.value))} /></label>
+          <label className="field"><span>Cupo máximo de usuarios</span><input className="input" type="number" min="1" max="100000" value={maxUsers} onChange={(event) => setMaxUsers(Number(event.target.value))} /></label>
+          <div><Button type="submit" disabled={createRegistration.isPending}>{createRegistration.isPending ? 'Emitiendo…' : 'Emitir clave de registro'}</Button></div>
+        </form>
       </section>
 
       <section className="card">

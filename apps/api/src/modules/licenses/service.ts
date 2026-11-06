@@ -48,8 +48,63 @@ export async function createUserLicense(
   return { id: row.id, key, durationSeconds: input.durationSeconds };
 }
 
+export async function createRegistrationLicense(
+  pool: Pool,
+  platformUserId: string,
+  input: { durationSeconds: number; maxUsers: number },
+): Promise<IssuedKey & { maxUsers: number }> {
+  const key = generateRefreshToken();
+  const row = await withContext(pool, { platform: true }, (c) =>
+    repo.insertRegistrationLicense(c, {
+      keyHash: hashToken(key),
+      durationSeconds: input.durationSeconds,
+      maxUsers: input.maxUsers,
+      createdBy: platformUserId,
+    }),
+  );
+  return { id: row.id, key, durationSeconds: input.durationSeconds, maxUsers: input.maxUsers };
+}
+
+export async function redeemRegistrationLicenseOnClient(
+  c: PoolClient,
+  ctx: { companyId: string; userId: string },
+  key: string,
+): Promise<void> {
+  try {
+    const r = await c.query<{ registration_license_id: string }>(
+      'SELECT * FROM redeem_registration_license($1, $2, $3)',
+      [hashToken(key), ctx.companyId, ctx.userId],
+    );
+    if (r.rowCount !== 1) {
+      throw new AppError('INVALID_REGISTRATION_LICENSE', 'La clave de registro no es válida.', 400);
+    }
+    await c.query(
+      `INSERT INTO audit_logs (company_id, user_id, action, metadata)
+       VALUES ($1, $2, 'licenses.registration_redeemed', $3)`,
+      [ctx.companyId, ctx.userId, JSON.stringify({ registrationLicenseId: r.rows[0]!.registration_license_id })],
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '';
+    if (message.includes('REGISTRATION_LICENSE_NOT_FOUND')) {
+      throw new AppError('INVALID_REGISTRATION_LICENSE', 'La clave de registro no es válida.', 400);
+    }
+    if (message.includes('REGISTRATION_LICENSE_NOT_REDEEMABLE')) {
+      throw new AppError('REGISTRATION_LICENSE_NOT_REDEEMABLE', 'La clave de registro ya fue utilizada o revocada.', 409);
+    }
+    throw error;
+  }
+}
+
 export async function listCompanyLicenses(pool: Pool, companyId: string): Promise<repo.LicenseRow[]> {
   return withContext(pool, { companyId, platform: true }, (c) => repo.listLicenses(c, companyId));
+}
+
+export async function listUserLicenses(
+  pool: Pool,
+  companyId: string,
+  userId: string,
+): Promise<repo.UserLicenseRow[]> {
+  return withContext(pool, { companyId, platform: true }, (c) => repo.listUserLicenses(c, companyId, userId));
 }
 
 export async function setLicenseStatus(
@@ -68,6 +123,25 @@ export async function setLicenseStatus(
       [license.company_id, JSON.stringify({ licenseId, status })],
     );
     return (await repo.getLicense(c, licenseId))!;
+  });
+}
+
+export async function setUserLicenseStatus(
+  pool: Pool,
+  licenseId: string,
+  status: 'SUSPENDIDA' | 'REVOCADA' | 'ACTIVA',
+): Promise<repo.UserLicenseRow> {
+  return withContext(pool, { platform: true }, async (c) => {
+    const license = await repo.getUserLicense(c, licenseId);
+    if (!license) {
+      throw new AppError('USER_LICENSE_NOT_FOUND', 'La licencia de usuario indicada no existe.', 404);
+    }
+    await repo.setUserLicenseStatus(c, licenseId, status);
+    await c.query(
+      `INSERT INTO audit_logs (company_id, action, metadata) VALUES ($1, 'user_licenses.status_change', $2)`,
+      [license.company_id, JSON.stringify({ userLicenseId: licenseId, status })],
+    );
+    return (await repo.getUserLicense(c, licenseId))!;
   });
 }
 
@@ -141,6 +215,32 @@ export async function redeemUserLicense(
     throw new AppError('LICENSE_NOT_REDEEMABLE', 'Esa clave ya fue usada, está revocada o ya no aplica.', 409);
   }
   return outcome.row;
+}
+
+export async function activateLicense(
+  pool: Pool,
+  ctx: { userId: string; companyId: string },
+  key: string,
+): Promise<{ scope: 'company' | 'user'; status: 'ACTIVA'; startsAt: Date; expiresAt: Date }> {
+  try {
+    const license = await redeemCompanyLicense(pool, ctx, key);
+    return {
+      scope: 'company',
+      status: 'ACTIVA',
+      startsAt: license.starts_at!,
+      expiresAt: license.expires_at!,
+    };
+  } catch (error) {
+    if (!(error instanceof AppError) || error.code !== 'INVALID_LICENSE_KEY') throw error;
+  }
+
+  const license = await redeemUserLicense(pool, ctx, key);
+  return {
+    scope: 'user',
+    status: 'ACTIVA',
+    startsAt: license.starts_at!,
+    expiresAt: license.expires_at!,
+  };
 }
 
 export interface LicenseStatusSummary {

@@ -15,17 +15,13 @@ export interface LicenseSummary {
 }
 
 export interface LicenseStatus {
-  canOperate: boolean;
-  company: LicenseSummary | null;
-  user: LicenseSummary | null;
-  activeUsers: number;
-  maxUsers: number | null;
+  company: { active: boolean };
+  user: { active: boolean; required: boolean };
 }
 
 export interface IssuedLicense {
   id: string;
-  status: 'PENDIENTE';
-  activationKey: string;
+  key: string;
   durationSeconds: number;
   maxUsers?: number;
 }
@@ -44,7 +40,7 @@ function platformBase(companyId: string | null): string {
 export function useLicenseStatus(companyId: string | null) {
   return useQuery({
     queryKey: licenseKeys.status(companyId),
-    queryFn: () => apiData<LicenseStatus>('/licenses/status'),
+    queryFn: () => apiData<LicenseStatus>('/license-status'),
     enabled: !!companyId,
     refetchOnWindowFocus: true,
     staleTime: 15_000,
@@ -81,7 +77,7 @@ export function useIssueCompanyLicense(companyId: string | null) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: { durationSeconds: number; maxUsers: number }) =>
-      apiData<IssuedLicense>(`${platformBase(companyId)}/licenses`, { method: 'POST', body: input }),
+      apiData<IssuedLicense>('/platform/licenses', { method: 'POST', body: { ...input, companyId } }),
     onSuccess: () => { void qc.invalidateQueries({ queryKey: licenseKeys.company(companyId) }); },
   });
 }
@@ -90,8 +86,15 @@ export function useIssueUserLicense(companyId: string | null, userId: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: { durationSeconds: number }) =>
-      apiData<IssuedLicense>(`${platformBase(companyId)}/users/${userId}/licenses`, { method: 'POST', body: input }),
+      apiData<IssuedLicense>('/platform/user-licenses', { method: 'POST', body: { ...input, companyId, userId } }),
     onSuccess: () => { void qc.invalidateQueries({ queryKey: licenseKeys.user(companyId, userId) }); },
+  });
+}
+
+export function useIssueRegistrationLicense() {
+  return useMutation({
+    mutationFn: (input: { durationSeconds: number; maxUsers: number }) =>
+      apiData<IssuedLicense>('/platform/registration-licenses', { method: 'POST', body: input }),
   });
 }
 
@@ -99,10 +102,11 @@ export function useSetLicenseStatus(companyId: string | null, scope: 'company' |
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: { licenseId: string; status: 'SUSPENDIDA' | 'REVOCADA' }) => {
+      const action = input.status === 'SUSPENDIDA' ? 'suspend' : 'revoke';
       const endpoint = scope === 'company'
-        ? `${platformBase(companyId)}/licenses/${input.licenseId}`
-        : `${platformBase(companyId)}/users/${userId}/licenses/${input.licenseId}`;
-      return apiData<void>(endpoint, { method: 'PATCH', body: { status: input.status } });
+        ? `/platform/licenses/${input.licenseId}/${action}`
+        : `/platform/user-licenses/${input.licenseId}/${action}`;
+      return apiData<void>(endpoint, { method: 'POST' });
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: licenseKeys.company(companyId) });

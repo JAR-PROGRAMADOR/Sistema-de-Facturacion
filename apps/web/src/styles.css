@@ -90,6 +90,8 @@ body { margin: 0; }
   display: grid;
   gap: 14px;
 }
+.auth-license-toggle { display: flex; align-items: center; gap: 9px; font-size: 0.9rem; }
+.auth-license-toggle input { width: 17px; height: 17px; margin: 0; accent-color: var(--color-primary); }
 .auth-card h1 { font-size: 1.35rem; margin: 0 0 4px; }
 
 /* --- App shell --- */

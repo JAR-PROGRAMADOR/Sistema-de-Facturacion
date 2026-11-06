@@ -21,6 +21,7 @@ export const registerSchema = z.object({
   fullName: z.string().trim().min(1).max(120),
   email: emailSchema,
   password: passwordSchema,
+  licenseKey: z.string().trim().min(16).max(512).optional(),
   currency: z.string().trim().toUpperCase().length(3).default('USD'),
   locale: z.enum(['es', 'en', 'tr', 'zh-CN', 'ja', 'ko']).default('es'),
   timezone: z.string().trim().min(1).max(64).default('UTC'),

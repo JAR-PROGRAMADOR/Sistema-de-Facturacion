@@ -72,11 +72,15 @@ export async function authRoutes(app: FastifyInstance, opts: { env: Env; auth: A
       },
       requestMeta(req),
       input.password,
+      input.licenseKey,
     );
     reply.status(201).send({
       data: {
         company: { id: company.id, name: company.name },
-        message: 'Cuenta creada. Para empezar a usar el sistema, solicita y activa las licencias de empresa y usuario.',
+        licenseActivated: Boolean(input.licenseKey),
+        message: input.licenseKey
+          ? 'Cuenta creada. La licencia de empresa y la de usuario quedaron activadas.'
+          : 'Cuenta creada. Para empezar a usar el sistema, solicita y activa las licencias de empresa y usuario.',
       },
     });
   });

@@ -15,9 +15,15 @@ export const createUserLicenseSchema = z.object({
   durationSeconds,
 });
 
+export const createRegistrationLicenseSchema = z.object({
+  durationSeconds,
+  maxUsers: z.coerce.number().int().min(1).max(100_000).default(5),
+});
+
 export const redeemLicenseSchema = z.object({
   key: z.string().min(16).max(512),
 });
 
 export type CreateLicenseInput = z.infer<typeof createLicenseSchema>;
 export type CreateUserLicenseInput = z.infer<typeof createUserLicenseSchema>;
+export type CreateRegistrationLicenseInput = z.infer<typeof createRegistrationLicenseSchema>;

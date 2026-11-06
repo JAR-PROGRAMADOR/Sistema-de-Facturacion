@@ -8,17 +8,6 @@ import { Spinner } from '../../shared/ui/Spinner';
 import { useToast } from '../../shared/ui/Toast';
 import { useActivateLicense, useLicenseStatus } from './api';
 
-function stateLabel(state: string | undefined): string {
-  switch (state) {
-    case 'ACTIVA': return 'Activa';
-    case 'PENDIENTE': return 'Pendiente de activación';
-    case 'SUSPENDIDA': return 'Suspendida';
-    case 'REVOCADA': return 'Revocada';
-    case 'VENCIDA': return 'Vencida';
-    default: return 'No asignada';
-  }
-}
-
 export function LicenseGate() {
   const { isPlatform, companyId } = useActiveCompany();
   const { signOut } = useAuth();
@@ -44,10 +33,9 @@ export function LicenseGate() {
     );
   }
 
-  if (statusQuery.data?.canOperate) return <Outlet />;
+  if (statusQuery.data?.company.active && statusQuery.data.user.active) return <Outlet />;
 
   const status = statusQuery.data;
-  const expiresAt = status?.company?.expires_at ? new Date(status.company.expires_at).toLocaleString() : null;
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
@@ -65,10 +53,9 @@ export function LicenseGate() {
         <h1>Renovar licencia</h1>
         <p>El acceso está bloqueado hasta que estén activas las licencias requeridas.</p>
         <div className="grid-2">
-          <div><span className="muted">Licencia de empresa</span><div><strong>{stateLabel(status?.company?.status)}</strong></div>{expiresAt && <small className="muted">Vence: {expiresAt}</small>}</div>
-          <div><span className="muted">Licencia de usuario</span><div><strong>{stateLabel(status?.user?.status)}</strong></div>{status?.user?.expires_at && <small className="muted">Vence: {new Date(status.user.expires_at).toLocaleString()}</small>}</div>
+          <div><span className="muted">Licencia de empresa</span><div><strong>{status?.company.active ? 'Activa' : 'Pendiente, vencida o no asignada'}</strong></div></div>
+          <div><span className="muted">Licencia de usuario</span><div><strong>{status?.user.active ? 'Activa' : 'Pendiente, vencida o no asignada'}</strong></div></div>
         </div>
-        {status?.maxUsers !== null && status?.maxUsers !== undefined && <p className="muted">Usuarios activos: {status.activeUsers} / {status.maxUsers}</p>}
         <form className="stack" onSubmit={submit}>
           <label className="field"><span>Clave de activación</span><input className="input" value={key} onChange={(event) => setKey(event.target.value)} required minLength={20} maxLength={128} autoComplete="off" /></label>
           <Button type="submit" disabled={activate.isPending}>{activate.isPending ? 'Activando…' : 'Activar licencia'}</Button>

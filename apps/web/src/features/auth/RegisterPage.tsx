@@ -15,23 +15,31 @@ const schema = z
     email: z.string().trim().email('Correo inválido.'),
     password: z.string().min(12, 'La contraseña debe tener al menos 12 caracteres.').max(128),
     passwordConfirmation: z.string(),
+    hasRegistrationLicense: z.boolean().optional(),
+    licenseKey: z.string().trim().optional(),
   })
   .refine((values) => values.password === values.passwordConfirmation, {
     message: 'Las contraseñas no coinciden.',
     path: ['passwordConfirmation'],
+  })
+  .refine((values) => !values.hasRegistrationLicense || (values.licenseKey?.length ?? 0) >= 16, {
+    message: 'Ingresa una clave de registro válida.',
+    path: ['licenseKey'],
   });
 
 type FormValues = z.infer<typeof schema>;
-type RegisterResponse = { data: { company: { id: string; name: string }; message: string } };
+type RegisterResponse = { data: { company: { id: string; name: string }; licenseActivated: boolean; message: string } };
 
 export function RegisterPage() {
   const { push } = useToast();
-  const [registeredCompany, setRegisteredCompany] = useState<RegisterResponse['data']['company'] | null>(null);
+  const [registrationResult, setRegistrationResult] = useState<RegisterResponse['data'] | null>(null);
   const {
     register,
+    watch,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>({ resolver: zodResolver(schema) });
+  } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { hasRegistrationLicense: false } });
+  const hasRegistrationLicense = watch('hasRegistrationLicense');
 
   const onSubmit = handleSubmit(async (formValues) => {
     try {
@@ -42,10 +50,11 @@ export function RegisterPage() {
           fullName: formValues.fullName,
           email: formValues.email,
           password: formValues.password,
+          licenseKey: formValues.hasRegistrationLicense ? formValues.licenseKey : undefined,
         },
         skipAuth: true,
       });
-      setRegisteredCompany(response.data.company);
+      setRegistrationResult(response.data);
     } catch (error) {
       push('error', error instanceof Error ? error.message : 'No fue posible crear la cuenta.');
     }
@@ -54,14 +63,16 @@ export function RegisterPage() {
   return (
     <main className="auth-shell">
       <form className="card auth-card" onSubmit={onSubmit} noValidate>
-        {registeredCompany ? (
+        {registrationResult ? (
           <>
             <h1>Cuenta creada</h1>
             <p className="auth-note">
-              La empresa <strong>{registeredCompany.name}</strong> ya está registrada. Para usar el sistema,
-              solicita y activa una licencia de empresa y una licencia de usuario.
+              La empresa <strong>{registrationResult.company.name}</strong> ya está registrada.{' '}
+              {registrationResult.licenseActivated
+                ? 'La licencia de empresa y la de usuario quedaron activadas.'
+                : 'Para usar el sistema, solicita y activa una licencia de empresa y una licencia de usuario.'}
             </p>
-            <p className="auth-note">No se activó un período de prueba.</p>
+            {!registrationResult.licenseActivated && <p className="auth-note">No se activó un período de prueba.</p>}
             <Link className="auth-primary-link" to="/login">Ir a iniciar sesión</Link>
           </>
         ) : (
@@ -88,6 +99,21 @@ export function RegisterPage() {
             <Field label="Confirmar contraseña" error={errors.passwordConfirmation?.message}>
               <Input type="password" autoComplete="new-password" {...register('passwordConfirmation')} />
             </Field>
+
+            <label className="auth-license-toggle">
+              <input type="checkbox" {...register('hasRegistrationLicense')} />
+              <span>Tengo una clave de registro</span>
+            </label>
+
+            {hasRegistrationLicense && (
+              <Field
+                label="Clave de registro"
+                error={errors.licenseKey?.message}
+                hint="La clave activa la licencia de empresa y la de tu usuario."
+              >
+                <Input autoComplete="off" autoCapitalize="none" spellCheck={false} {...register('licenseKey')} />
+              </Field>
+            )}
 
             <button type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Creando cuenta…' : 'Crear cuenta'}
