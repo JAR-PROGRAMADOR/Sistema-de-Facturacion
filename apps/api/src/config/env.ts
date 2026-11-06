@@ -21,13 +21,27 @@ const envSchema = z.object({
   SESSION_MAX_DAYS: z.coerce.number().int().positive().default(30),
   LOGIN_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(10),
 
+  // Primer superadministrador de plataforma (arranque). Opcionales, pero van
+  // siempre juntas: con ellas el servidor asegura al arrancar que exista un
+  // superadministrador que pueda emitir claves de licencia. Sin ellas no se
+  // crea ni se promueve a nadie. La contraseña sigue la misma regla que las
+  // de los usuarios web: mínimo 12 caracteres.
+  PLATFORM_ADMIN_EMAIL: z.string().trim().toLowerCase().email().optional(),
+  PLATFORM_ADMIN_PASSWORD: z.string().min(12).optional(),
+
   // Recuperación de contraseña y 2FA (FASE 3b)
   FRONTEND_URL: z.string().default('https://sistema-de-facturacion-op8d.onrender.com/'),
   PASSWORD_RESET_TTL_MINUTES: z.coerce.number().int().positive().default(60),
   RESEND_API_KEY: z.string().optional(),
   RESEND_FROM_EMAIL: z.string().optional(),
   TWO_FACTOR_ISSUER: z.string().default('Facturacion'),
-});
+}).refine(
+  (env) => Boolean(env.PLATFORM_ADMIN_EMAIL) === Boolean(env.PLATFORM_ADMIN_PASSWORD),
+  {
+    message: 'PLATFORM_ADMIN_EMAIL y PLATFORM_ADMIN_PASSWORD van siempre juntas: define las dos o ninguna.',
+    path: ['PLATFORM_ADMIN_EMAIL'],
+  },
+);
 
 export type Env = z.infer<typeof envSchema>;
 

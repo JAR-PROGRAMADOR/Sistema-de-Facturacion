@@ -29,6 +29,9 @@ antes de conocer la empresa. Devuelven solo las columnas necesarias.
 
 ## Pendiente para fases siguientes
 - FASE 3: tablas `sessions`, `password_resets`, `user_2fa` y la creación del primer superadministrador.
+  Resuelto: el arranque asegura el primer superadministrador con `PLATFORM_ADMIN_EMAIL` /
+  `PLATFORM_ADMIN_PASSWORD` y la función `ensure_platform_admin` (migración 0014); ver
+  `docs/LICENCIAS.md`.
 - FASE 5: canje de claves de licencia (función dedicada, porque la empresa vencida no tiene contexto activo).
 - Al crear un usuario dentro de una empresa: generar el UUID en la aplicación y no usar `RETURNING`
   hasta crear su `company_users`.

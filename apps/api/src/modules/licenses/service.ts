@@ -69,9 +69,13 @@ export async function redeemRegistrationLicenseOnClient(
   c: PoolClient,
   ctx: { companyId: string; userId: string },
   key: string,
-): Promise<void> {
+): Promise<{ registrationLicenseId: string; companyLicenseId: string; userLicenseId: string }> {
   try {
-    const r = await c.query<{ registration_license_id: string }>(
+    const r = await c.query<{
+      registration_license_id: string;
+      company_license_id: string;
+      user_license_id: string;
+    }>(
       'SELECT * FROM redeem_registration_license($1, $2, $3)',
       [hashToken(key), ctx.companyId, ctx.userId],
     );
@@ -83,6 +87,11 @@ export async function redeemRegistrationLicenseOnClient(
        VALUES ($1, $2, 'licenses.registration_redeemed', $3)`,
       [ctx.companyId, ctx.userId, JSON.stringify({ registrationLicenseId: r.rows[0]!.registration_license_id })],
     );
+    return {
+      registrationLicenseId: r.rows[0]!.registration_license_id,
+      companyLicenseId: r.rows[0]!.company_license_id,
+      userLicenseId: r.rows[0]!.user_license_id,
+    };
   } catch (error) {
     const message = error instanceof Error ? error.message : '';
     if (message.includes('REGISTRATION_LICENSE_NOT_FOUND')) {
@@ -93,6 +102,34 @@ export async function redeemRegistrationLicenseOnClient(
     }
     throw error;
   }
+}
+
+/**
+ * Canjea una clave de registro en una empresa que ya existe: activa a la vez la
+ * licencia de empresa y la del usuario. La función SQL exige contexto de
+ * plataforma, así que se ejecuta con platform: true (la clave en sí es la
+ * autorización: es de un solo uso y solo la emite el superadministrador).
+ */
+export async function activateRegistrationLicense(
+  pool: Pool,
+  ctx: { userId: string; companyId: string },
+  key: string,
+): Promise<{ scope: 'both'; status: 'ACTIVA'; startsAt: Date; expiresAt: Date }> {
+  const ids = await withContext(pool, { platform: true, companyId: ctx.companyId, userId: ctx.userId }, (c) =>
+    redeemRegistrationLicenseOnClient(c, ctx, key),
+  );
+  const companyLicense = await withContext(pool, { platform: true, companyId: ctx.companyId }, (c) =>
+    repo.getLicense(c, ids.companyLicenseId),
+  );
+  if (!companyLicense?.starts_at || !companyLicense.expires_at) {
+    throw new AppError('INTERNAL_ERROR', 'La clave de registro se canjeó, pero no se pudo leer la licencia creada.', 500);
+  }
+  return {
+    scope: 'both',
+    status: 'ACTIVA',
+    startsAt: companyLicense.starts_at,
+    expiresAt: companyLicense.expires_at,
+  };
 }
 
 export async function listCompanyLicenses(pool: Pool, companyId: string): Promise<repo.LicenseRow[]> {
@@ -221,7 +258,7 @@ export async function activateLicense(
   pool: Pool,
   ctx: { userId: string; companyId: string },
   key: string,
-): Promise<{ scope: 'company' | 'user'; status: 'ACTIVA'; startsAt: Date; expiresAt: Date }> {
+): Promise<{ scope: 'company' | 'user' | 'both'; status: 'ACTIVA'; startsAt: Date; expiresAt: Date }> {
   try {
     const license = await redeemCompanyLicense(pool, ctx, key);
     return {
@@ -234,13 +271,26 @@ export async function activateLicense(
     if (!(error instanceof AppError) || error.code !== 'INVALID_LICENSE_KEY') throw error;
   }
 
-  const license = await redeemUserLicense(pool, ctx, key);
-  return {
-    scope: 'user',
-    status: 'ACTIVA',
-    startsAt: license.starts_at!,
-    expiresAt: license.expires_at!,
-  };
+  try {
+    const license = await redeemUserLicense(pool, ctx, key);
+    return {
+      scope: 'user',
+      status: 'ACTIVA',
+      startsAt: license.starts_at!,
+      expiresAt: license.expires_at!,
+    };
+  } catch (error) {
+    if (!(error instanceof AppError) || error.code !== 'INVALID_LICENSE_KEY') throw error;
+  }
+
+  // Una clave de registro también vale aquí: activa las dos licencias a la vez.
+  // Si tampoco es esa, la clave simplemente no existe para esta empresa/usuario.
+  try {
+    return await activateRegistrationLicense(pool, ctx, key);
+  } catch (error) {
+    if (error instanceof AppError && error.code === 'REGISTRATION_LICENSE_NOT_REDEEMABLE') throw error;
+    throw new AppError('INVALID_LICENSE_KEY', 'La clave no es válida para esta empresa.', 400);
+  }
 }
 
 export interface LicenseStatusSummary {

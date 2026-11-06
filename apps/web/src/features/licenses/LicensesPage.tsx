@@ -87,13 +87,12 @@ export function LicensesPage() {
   };
 
   if (!isPlatform) return <section className="card"><h1>Licencias</h1><p className="muted">Esta vista solo está disponible para la plataforma.</p></section>;
-  if (!companyId) return <section className="card"><h1>Licencias</h1><p className="muted">Selecciona una empresa para administrar licencias.</p></section>;
   if (allLoading) return <div className="center"><Spinner /></div>;
 
   return (
     <div className="stack">
       <section className="card">
-        <header className="page-header"><div><h1>Licencias</h1><p className="muted">Emite claves de renovación para la empresa seleccionada.</p></div></header>
+        <header className="page-header"><div><h1>Licencias</h1><p className="muted">Emite claves para la empresa seleccionada, o una clave de registro para una empresa nueva.</p></div></header>
         {issuedKey && (
           <div className="field" style={{ marginBottom: 20 }}>
             <strong>{issuedKey.label}</strong>
@@ -101,6 +100,25 @@ export function LicensesPage() {
             <Button variant="ghost" onClick={() => setIssuedKey(null)}>Ocultar clave</Button>
           </div>
         )}
+        <p className="muted">La clave de registro no necesita una empresa seleccionada: es la primera clave que se emite cuando todavía no hay empresas.</p>
+      </section>
+
+      <section className="card">
+        <h2>Clave para un nuevo registro</h2>
+        <p className="muted">Canjearla durante el registro activa la licencia de empresa y la del usuario administrador. También se puede pegar en la pantalla de activación de una empresa que ya existe. Cada clave se usa una sola vez.</p>
+        <form className="grid-2" onSubmit={submitRegistrationLicense}>
+          <label className="field"><span>Vigencia (días)</span><input className="input" type="number" min="1" max="3650" value={registrationDays} onChange={(event) => setRegistrationDays(Number(event.target.value))} /></label>
+          <label className="field"><span>Cupo máximo de usuarios</span><input className="input" type="number" min="1" max="100000" value={maxUsers} onChange={(event) => setMaxUsers(Number(event.target.value))} /></label>
+          <div><Button type="submit" disabled={createRegistration.isPending}>{createRegistration.isPending ? 'Emitiendo…' : 'Emitir clave de registro'}</Button></div>
+        </form>
+      </section>
+
+      {!companyId ? (
+        <section className="card"><h2>Licencias de una empresa</h2><p className="muted">Selecciona una empresa arriba (selector «Empresa») para emitir o ver sus licencias de empresa y de usuario.</p></section>
+      ) : (
+        <>
+      <section className="card">
+        <h2>Emitir licencia de empresa</h2>
         <form className="grid-2" onSubmit={submitCompanyLicense}>
           <label className="field"><span>Vigencia de empresa (días)</span><input className="input" type="number" min="1" max="3650" value={companyDays} onChange={(event) => setCompanyDays(Number(event.target.value))} /></label>
           <label className="field"><span>Cupo máximo de usuarios</span><input className="input" type="number" min="1" max="100000" value={maxUsers} onChange={(event) => setMaxUsers(Number(event.target.value))} /></label>
@@ -124,16 +142,6 @@ export function LicensesPage() {
       </section>
 
       <section className="card">
-        <h2>Clave para un nuevo registro</h2>
-        <p className="muted">Canjearla durante el registro activa la licencia de empresa y la del usuario administrador. Cada clave se usa una sola vez.</p>
-        <form className="grid-2" onSubmit={submitRegistrationLicense}>
-          <label className="field"><span>Vigencia (días)</span><input className="input" type="number" min="1" max="3650" value={registrationDays} onChange={(event) => setRegistrationDays(Number(event.target.value))} /></label>
-          <label className="field"><span>Cupo máximo de usuarios</span><input className="input" type="number" min="1" max="100000" value={maxUsers} onChange={(event) => setMaxUsers(Number(event.target.value))} /></label>
-          <div><Button type="submit" disabled={createRegistration.isPending}>{createRegistration.isPending ? 'Emitiendo…' : 'Emitir clave de registro'}</Button></div>
-        </form>
-      </section>
-
-      <section className="card">
         <h2>Licencias por usuario</h2>
         <form className="grid-2" onSubmit={submitUserLicense}>
           <label className="field"><span>Usuario</span><select className="input" value={userId} onChange={(event) => setUserId(event.target.value)}><option value="">Selecciona un usuario activo</option>{users.map((user) => <option key={user.id} value={user.id}>{user.fullName} · {user.email}</option>)}</select></label>
@@ -152,6 +160,8 @@ export function LicensesPage() {
           </table></div>
         ))}
       </section>
+        </>
+      )}
     </div>
   );
 }

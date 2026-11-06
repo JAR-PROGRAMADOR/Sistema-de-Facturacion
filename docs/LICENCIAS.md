@@ -17,6 +17,24 @@ plataforma nunca necesita licencia (no participa de este sistema).
   cómo renovarla" en vez de dejar a la empresa completamente a oscuras.
 - `POST /licenses/redeem` y `POST /user-licenses/redeem`: para poder canjear la clave que
   resuelve el bloqueo.
+- `POST /licenses/activate`: la que usa la pantalla de activación. Acepta una clave de
+  empresa, una de usuario o una clave de registro (esta última activa las dos a la vez).
+  La pantalla muestra el campo para escribir la clave siempre, incluso si la consulta
+  de estado falla, para no dejar al usuario bloqueado sin forma de activar nada.
+
+## Primer superadministrador (arranque)
+Sin superadministrador no hay nadie que emita claves y el sistema queda bloqueado:
+es el problema del "huevo y la gallina" de las licencias. Se resuelve con las
+variables `PLATFORM_ADMIN_EMAIL` y `PLATFORM_ADMIN_PASSWORD` (van juntas, la
+contraseña mínimo 12 caracteres). Al arrancar, el servidor llama a la función
+`ensure_platform_admin` (migración 0014, `SECURITY DEFINER`, porque `app_user`
+no puede escribir `users.is_platform_admin`): si el usuario no existe lo crea
+como superadministrador, y si existe solo le da el rol, sin cambiar su
+contraseña. Si la migración 0014 no está aplicada, el arranque lo deja en el
+log y la API sigue funcionando. Una vez creado, ese usuario entra en
+`/licencias` y emite las claves; las empresas las canjean en la pantalla de
+activación. La página de licencias siempre permite emitir una clave de
+registro, aunque todavía no haya ninguna empresa seleccionada.
 
 ## Ciclo de vida de una clave
 ```
