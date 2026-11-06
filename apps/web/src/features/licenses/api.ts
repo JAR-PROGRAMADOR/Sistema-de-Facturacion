@@ -50,7 +50,7 @@ export function useLicenseStatus(companyId: string | null) {
 export function useActivateLicense(companyId: string | null) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (key: string) => apiData<{ scope: 'company' | 'user'; status: 'ACTIVA'; startsAt: string; expiresAt: string }>('/licenses/activate', {
+    mutationFn: (key: string) => apiData<{ scope: 'company' | 'user' | 'both'; status: 'ACTIVA'; startsAt: string; expiresAt: string }>('/licenses/activate', {
       method: 'POST', body: { key },
     }),
     onSuccess: () => { void qc.invalidateQueries({ queryKey: licenseKeys.status(companyId) }); },
