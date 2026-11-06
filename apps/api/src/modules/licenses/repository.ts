@@ -62,7 +62,9 @@ export async function setLicenseStatus(c: PoolClient, id: string, status: 'SUSPE
 export async function hasActiveLicense(c: PoolClient, companyId: string): Promise<boolean> {
   const r = await c.query(
     `SELECT 1 FROM licenses
-      WHERE company_id = $1 AND status = 'ACTIVA' AND expires_at IS NOT NULL AND expires_at > now()
+      WHERE company_id = $1 AND status = 'ACTIVA'
+        AND starts_at IS NOT NULL AND starts_at <= now()
+        AND expires_at IS NOT NULL AND expires_at > now()
       LIMIT 1`,
     [companyId],
   );
@@ -97,6 +99,7 @@ export async function hasActiveUserLicense(c: PoolClient, companyId: string, use
   const r = await c.query(
     `SELECT 1 FROM user_licenses
       WHERE company_id = $1 AND user_id = $2 AND status = 'ACTIVA'
+        AND starts_at IS NOT NULL AND starts_at <= now()
         AND expires_at IS NOT NULL AND expires_at > now()
       LIMIT 1`,
     [companyId, userId],

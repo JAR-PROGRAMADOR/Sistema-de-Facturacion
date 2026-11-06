@@ -6,5 +6,12 @@ import { defineConfig } from 'vitest/config';
 const root = fileURLToPath(new URL('../..', import.meta.url));
 
 export default defineConfig({
-  test: { env: loadEnv('test', root, '') },
+  test: {
+    env: loadEnv('test', root, ''),
+    testTimeout: 30_000,
+    hookTimeout: 30_000,
+    pool: 'forks',
+    minWorkers: 2,
+    maxWorkers: 2,
+  },
 });

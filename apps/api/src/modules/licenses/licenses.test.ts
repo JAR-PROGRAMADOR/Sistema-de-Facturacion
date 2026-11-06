@@ -151,7 +151,7 @@ describe.skipIf(!enabled)('Licencias (FASE 5)', () => {
       method: 'GET', url: '/api/v1/roles',
       headers: { authorization: `Bearer ${userToken}` },
     });
-    expect(now.statusCode).toBe(200);
+    expect(now.statusCode, JSON.stringify(now.json())).toBe(200);
   }, REMOTE_DB_TIMEOUT_MS);
 
   it('el superadmin puede suspender y revocar licencias, bloqueando el acceso de nuevo', async () => {

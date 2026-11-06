@@ -7,6 +7,7 @@ interface LicenseRow {
   status: 'PENDIENTE' | 'ACTIVA' | 'VENCIDA' | 'SUSPENDIDA' | 'REVOCADA';
   starts_at: Date | null;
   expires_at: Date | null;
+  checked_at: Date;
   max_users?: number | null;
 }
 
@@ -23,10 +24,10 @@ function assertActiveLicense(
   if (license.status === 'SUSPENDIDA' || license.status === 'REVOCADA' || license.status === 'PENDIENTE') {
     throw new AppError('LICENSE_EXPIRED', 'La licencia de la empresa o del usuario no está activa.', 402);
   }
-  if (license.status === 'VENCIDA' || !license.expires_at || license.expires_at.getTime() <= Date.now()) {
+  if (license.status === 'VENCIDA' || !license.expires_at || license.expires_at <= license.checked_at) {
     throw new AppError('LICENSE_EXPIRED', 'La licencia ha vencido. Activa una renovación para continuar.', 402);
   }
-  if (!license.starts_at || license.starts_at.getTime() > Date.now()) {
+  if (!license.starts_at || license.starts_at > license.checked_at) {
     throw new AppError('LICENSE_EXPIRED', 'La vigencia de la licencia todavía no comienza.', 402);
   }
 }
@@ -56,7 +57,7 @@ export async function assertLicenseAccess(
 
   await withContext(pool, { companyId: claims.cid, userId: claims.sub }, async (c) => {
     const companyResult = await c.query<LicenseRow>(
-      `SELECT status, starts_at, expires_at, max_users FROM licenses
+      `SELECT status, starts_at, expires_at, max_users, now() AS checked_at FROM licenses
         WHERE company_id = $1
         ORDER BY CASE WHEN status = 'ACTIVA' AND starts_at <= now() AND expires_at > now() THEN 0
                       WHEN status = 'PENDIENTE' THEN 1 WHEN status = 'ACTIVA' THEN 2 ELSE 3 END,
@@ -67,7 +68,7 @@ export async function assertLicenseAccess(
     assertActiveLicense(companyLicense, 'company');
 
     const userResult = await c.query<LicenseRow>(
-      `SELECT status, starts_at, expires_at FROM user_licenses
+      `SELECT status, starts_at, expires_at, now() AS checked_at FROM user_licenses
         WHERE company_id = $1 AND user_id = $2
         ORDER BY CASE WHEN status = 'ACTIVA' AND starts_at <= now() AND expires_at > now() THEN 0
                       WHEN status = 'PENDIENTE' THEN 1 WHEN status = 'ACTIVA' THEN 2 ELSE 3 END,
