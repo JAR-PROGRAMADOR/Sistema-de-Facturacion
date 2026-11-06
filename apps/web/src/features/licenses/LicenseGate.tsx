@@ -50,7 +50,7 @@ export function LicenseGate() {
           <p className="field__error">
             No se pudo verificar el estado de la licencia
             {statusQuery.error instanceof ApiError ? `: ${statusQuery.error.message}` : '.'} Puedes
-            activar una clave de todos modos, o reintentarlo.
+            activar un código de todos modos, o reintentarlo.
           </p>
         )}
         <div className="grid-2">
@@ -58,11 +58,12 @@ export function LicenseGate() {
           <div><span className="muted">Licencia de usuario</span><div><strong>{status?.user.active ? 'Activa' : 'Pendiente, vencida o no asignada'}</strong></div></div>
         </div>
         <p className="muted">
-          Necesitas dos claves, una de empresa y una de usuario, o una sola clave de registro,
-          que activa las dos a la vez. Pídeselas al administrador de la plataforma.
+          Necesitas dos códigos, uno de empresa y uno de usuario, o un solo código de registro,
+          que activa los dos a la vez. Son 6 dígitos, sin letras: te los da el administrador de
+          la plataforma.
         </p>
         <form className="stack" onSubmit={submit}>
-          <label className="field"><span>Clave de activación</span><input className="input" value={key} onChange={(event) => setKey(event.target.value)} required minLength={20} maxLength={128} autoComplete="off" /></label>
+          <label className="field"><span>Código de activación (6 dígitos)</span><input className="input" value={key} onChange={(event) => setKey(event.target.value.replace(/\D/g, '').slice(0, 6))} required minLength={6} maxLength={6} pattern="[0-9]{6}" inputMode="numeric" autoComplete="one-time-code" placeholder="123456" /></label>
           <Button type="submit" disabled={activate.isPending}>{activate.isPending ? 'Activando…' : 'Activar licencia'}</Button>
         </form>
         {statusQuery.isError && (

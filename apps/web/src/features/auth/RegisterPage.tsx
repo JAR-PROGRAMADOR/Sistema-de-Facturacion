@@ -22,8 +22,8 @@ const schema = z
     message: 'Las contraseñas no coinciden.',
     path: ['passwordConfirmation'],
   })
-  .refine((values) => !values.hasRegistrationLicense || (values.licenseKey?.length ?? 0) >= 16, {
-    message: 'Ingresa una clave de registro válida.',
+  .refine((values) => !values.hasRegistrationLicense || /^\d{6}$/.test(values.licenseKey ?? ''), {
+    message: 'Ingresa el código de registro de 6 dígitos.',
     path: ['licenseKey'],
   });
 
@@ -102,16 +102,16 @@ export function RegisterPage() {
 
             <label className="auth-license-toggle">
               <input type="checkbox" {...register('hasRegistrationLicense')} />
-              <span>Tengo una clave de registro</span>
+              <span>Tengo un código de registro</span>
             </label>
 
             {hasRegistrationLicense && (
               <Field
-                label="Clave de registro"
+                label="Código de registro (6 dígitos)"
                 error={errors.licenseKey?.message}
-                hint="La clave activa la licencia de empresa y la de tu usuario."
+                hint="El código activa la licencia de empresa y la de tu usuario."
               >
-                <Input autoComplete="off" autoCapitalize="none" spellCheck={false} {...register('licenseKey')} />
+                <Input autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} placeholder="123456" {...register('licenseKey')} />
               </Field>
             )}
 

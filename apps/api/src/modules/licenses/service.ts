@@ -1,13 +1,45 @@
 import type { Pool, PoolClient } from 'pg';
 import { withContext } from '../../database/client.js';
 import { AppError } from '../../shared/errors.js';
-import { generateRefreshToken, hashToken } from '../auth/tokens.js';
+import { generateActivationCode, hashToken } from '../auth/tokens.js';
 import * as repo from './repository.js';
 
 export interface IssuedKey {
   id: string;
-  key: string; // en texto plano: se muestra UNA sola vez, nunca se vuelve a poder leer
+  key: string; // código de 6 dígitos en texto plano: se muestra UNA sola vez, nunca se vuelve a poder leer
   durationSeconds: number;
+}
+
+/**
+ * Genera un código de activación de 6 dígitos que no exista ya en ninguna de
+ * las tres tablas de licencias. Con solo un millón de códigos posibles, dos
+ * códigos iguales en ámbitos distintos (empresa, usuario, registro) serían
+ * ambiguos al canjear, así que la unicidad es global, no por tabla. Solo se
+ * guarda su hash; el código en claro lo devuelve esta función para mostrarlo
+ * una sola vez al emitirlo.
+ */
+async function generateUniqueActivationCode(pool: Pool): Promise<{ code: string; keyHash: string }> {
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const code = generateActivationCode();
+    const keyHash = hashToken(code);
+    const exists = await withContext(pool, { platform: true }, async (c) => {
+      const r = await c.query<{ found: boolean }>(
+        `SELECT EXISTS (
+           SELECT 1 FROM licenses WHERE key_hash = $1
+           UNION ALL SELECT 1 FROM user_licenses WHERE key_hash = $1
+           UNION ALL SELECT 1 FROM registration_licenses WHERE key_hash = $1
+         ) AS found`,
+        [keyHash],
+      );
+      return r.rows[0]?.found ?? false;
+    });
+    if (!exists) return { code, keyHash };
+  }
+  throw new AppError(
+    'ACTIVATION_CODE_UNAVAILABLE',
+    'No fue posible generar un código de activación. Inténtalo de nuevo.',
+    500,
+  );
 }
 
 // ---------------------------------------------------------------- plataforma: emitir/gestionar
@@ -17,11 +49,11 @@ export async function createLicense(
   platformUserId: string,
   input: { companyId: string; durationSeconds: number; maxUsers: number },
 ): Promise<IssuedKey> {
-  const key = generateRefreshToken(); // 256 bits, igual que un refresh token: sobra entropía
+  const { code: key, keyHash } = await generateUniqueActivationCode(pool);
   const row = await withContext(pool, { companyId: input.companyId, platform: true }, (c) =>
     repo.insertLicense(c, {
       companyId: input.companyId,
-      keyHash: hashToken(key),
+      keyHash,
       durationSeconds: input.durationSeconds,
       maxUsers: input.maxUsers,
       createdBy: platformUserId,
@@ -35,12 +67,12 @@ export async function createUserLicense(
   platformUserId: string,
   input: { companyId: string; userId: string; durationSeconds: number },
 ): Promise<IssuedKey> {
-  const key = generateRefreshToken();
+  const { code: key, keyHash } = await generateUniqueActivationCode(pool);
   const row = await withContext(pool, { companyId: input.companyId, platform: true }, (c) =>
     repo.insertUserLicense(c, {
       companyId: input.companyId,
       userId: input.userId,
-      keyHash: hashToken(key),
+      keyHash,
       durationSeconds: input.durationSeconds,
       createdBy: platformUserId,
     }),
@@ -53,10 +85,10 @@ export async function createRegistrationLicense(
   platformUserId: string,
   input: { durationSeconds: number; maxUsers: number },
 ): Promise<IssuedKey & { maxUsers: number }> {
-  const key = generateRefreshToken();
+  const { code: key, keyHash } = await generateUniqueActivationCode(pool);
   const row = await withContext(pool, { platform: true }, (c) =>
     repo.insertRegistrationLicense(c, {
-      keyHash: hashToken(key),
+      keyHash,
       durationSeconds: input.durationSeconds,
       maxUsers: input.maxUsers,
       createdBy: platformUserId,
@@ -80,7 +112,7 @@ export async function redeemRegistrationLicenseOnClient(
       [hashToken(key), ctx.companyId, ctx.userId],
     );
     if (r.rowCount !== 1) {
-      throw new AppError('INVALID_REGISTRATION_LICENSE', 'La clave de registro no es válida.', 400);
+      throw new AppError('INVALID_REGISTRATION_LICENSE', 'El código de registro no es válido.', 400);
     }
     await c.query(
       `INSERT INTO audit_logs (company_id, user_id, action, metadata)
@@ -95,19 +127,19 @@ export async function redeemRegistrationLicenseOnClient(
   } catch (error) {
     const message = error instanceof Error ? error.message : '';
     if (message.includes('REGISTRATION_LICENSE_NOT_FOUND')) {
-      throw new AppError('INVALID_REGISTRATION_LICENSE', 'La clave de registro no es válida.', 400);
+      throw new AppError('INVALID_REGISTRATION_LICENSE', 'El código de registro no es válido.', 400);
     }
     if (message.includes('REGISTRATION_LICENSE_NOT_REDEEMABLE')) {
-      throw new AppError('REGISTRATION_LICENSE_NOT_REDEEMABLE', 'La clave de registro ya fue utilizada o revocada.', 409);
+      throw new AppError('REGISTRATION_LICENSE_NOT_REDEEMABLE', 'El código de registro ya fue utilizado o revocado.', 409);
     }
     throw error;
   }
 }
 
 /**
- * Canjea una clave de registro en una empresa que ya existe: activa a la vez la
+ * Canjea un código de registro en una empresa que ya existe: activa a la vez la
  * licencia de empresa y la del usuario. La función SQL exige contexto de
- * plataforma, así que se ejecuta con platform: true (la clave en sí es la
+ * plataforma, así que se ejecuta con platform: true (el código en sí es la
  * autorización: es de un solo uso y solo la emite el superadministrador).
  */
 export async function activateRegistrationLicense(
@@ -122,7 +154,7 @@ export async function activateRegistrationLicense(
     repo.getLicense(c, ids.companyLicenseId),
   );
   if (!companyLicense?.starts_at || !companyLicense.expires_at) {
-    throw new AppError('INTERNAL_ERROR', 'La clave de registro se canjeó, pero no se pudo leer la licencia creada.', 500);
+    throw new AppError('INTERNAL_ERROR', 'El código de registro se canjeó, pero no se pudo leer la licencia creada.', 500);
   }
   return {
     scope: 'both',
@@ -212,10 +244,10 @@ export async function redeemCompanyLicense(
   });
 
   if (outcome.kind === 'not_found') {
-    throw new AppError('INVALID_LICENSE_KEY', 'La clave no es válida para esta empresa.', 400);
+    throw new AppError('INVALID_LICENSE_KEY', 'El código no es válido para esta empresa.', 400);
   }
   if (outcome.kind === 'not_redeemable') {
-    throw new AppError('LICENSE_NOT_REDEEMABLE', 'Esa clave ya fue usada, está revocada o ya no aplica.', 409);
+    throw new AppError('LICENSE_NOT_REDEEMABLE', 'Ese código ya fue usado, está revocado o ya no aplica.', 409);
   }
   return outcome.row;
 }
@@ -246,10 +278,10 @@ export async function redeemUserLicense(
   });
 
   if (outcome.kind === 'not_found') {
-    throw new AppError('INVALID_LICENSE_KEY', 'La clave no es válida para tu usuario en esta empresa.', 400);
+    throw new AppError('INVALID_LICENSE_KEY', 'El código no es válido para tu usuario en esta empresa.', 400);
   }
   if (outcome.kind === 'not_redeemable') {
-    throw new AppError('LICENSE_NOT_REDEEMABLE', 'Esa clave ya fue usada, está revocada o ya no aplica.', 409);
+    throw new AppError('LICENSE_NOT_REDEEMABLE', 'Ese código ya fue usado, está revocado o ya no aplica.', 409);
   }
   return outcome.row;
 }
@@ -283,13 +315,13 @@ export async function activateLicense(
     if (!(error instanceof AppError) || error.code !== 'INVALID_LICENSE_KEY') throw error;
   }
 
-  // Una clave de registro también vale aquí: activa las dos licencias a la vez.
-  // Si tampoco es esa, la clave simplemente no existe para esta empresa/usuario.
+  // Un código de registro también vale aquí: activa las dos licencias a la vez.
+  // Si tampoco es ese, el código simplemente no existe para esta empresa/usuario.
   try {
     return await activateRegistrationLicense(pool, ctx, key);
   } catch (error) {
     if (error instanceof AppError && error.code === 'REGISTRATION_LICENSE_NOT_REDEEMABLE') throw error;
-    throw new AppError('INVALID_LICENSE_KEY', 'La clave no es válida para esta empresa.', 400);
+    throw new AppError('INVALID_LICENSE_KEY', 'El código no es válido para esta empresa.', 400);
   }
 }
 

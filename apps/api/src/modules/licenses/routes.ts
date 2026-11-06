@@ -22,7 +22,7 @@ export async function licensesRoutes(app: FastifyInstance, opts: { pool: Pool })
         id: data.id,
         key: data.key,
         durationSeconds: data.durationSeconds,
-        warning: 'Guarda esta clave ahora: no se podrá volver a mostrar.',
+        warning: 'Anota este código ahora: no se podrá volver a mostrar.',
       },
     });
   });
@@ -35,7 +35,7 @@ export async function licensesRoutes(app: FastifyInstance, opts: { pool: Pool })
         id: data.id,
         key: data.key,
         durationSeconds: data.durationSeconds,
-        warning: 'Guarda esta clave ahora: no se podrá volver a mostrar.',
+        warning: 'Anota este código ahora: no se podrá volver a mostrar.',
       },
     });
   });
@@ -49,7 +49,7 @@ export async function licensesRoutes(app: FastifyInstance, opts: { pool: Pool })
         key: data.key,
         durationSeconds: data.durationSeconds,
         maxUsers: data.maxUsers,
-        warning: 'Guarda esta clave ahora: no se podrá volver a mostrar.',
+        warning: 'Anota este código ahora: no se podrá volver a mostrar.',
       },
     });
   });
