@@ -44,8 +44,8 @@ export function LicensesPage() {
     if (!companyId) return;
     try {
       const result = await createCompany.mutateAsync({ durationSeconds: Number(companyDays) * 86_400, maxUsers: Number(maxUsers) });
-      setIssuedKey({ key: result.key, label: 'Clave de licencia de empresa' });
-      push('success', 'Licencia de empresa emitida. Copia la clave ahora; no volverá a mostrarse.');
+      setIssuedKey({ key: result.key, label: 'Código de licencia de empresa' });
+      push('success', 'Código de empresa emitido. Anota el código de 6 dígitos ahora; no volverá a mostrarse.');
     } catch (error) {
       push('error', error instanceof ApiError ? error.message : 'No fue posible emitir la licencia.');
     }
@@ -56,8 +56,8 @@ export function LicensesPage() {
     if (!companyId || !userId) return;
     try {
       const result = await createUser.mutateAsync({ durationSeconds: Number(userDays) * 86_400 });
-      setIssuedKey({ key: result.key, label: 'Clave de licencia de usuario' });
-      push('success', 'Licencia de usuario emitida. Copia la clave ahora; no volverá a mostrarse.');
+      setIssuedKey({ key: result.key, label: 'Código de licencia de usuario' });
+      push('success', 'Código de usuario emitido. Anota el código de 6 dígitos ahora; no volverá a mostrarse.');
     } catch (error) {
       push('error', error instanceof ApiError ? error.message : 'No fue posible emitir la licencia de usuario.');
     }
@@ -70,10 +70,10 @@ export function LicensesPage() {
         durationSeconds: Number(registrationDays) * 86_400,
         maxUsers: Number(maxUsers),
       });
-      setIssuedKey({ key: result.key, label: 'Clave de registro de un solo uso' });
-      push('success', 'Clave de registro emitida. Al canjearla se activarán ambas licencias.');
+      setIssuedKey({ key: result.key, label: 'Código de registro de un solo uso' });
+      push('success', 'Código de registro emitido. Al canjearlo se activarán ambas licencias.');
     } catch (error) {
-      push('error', error instanceof ApiError ? error.message : 'No fue posible emitir la clave de registro.');
+      push('error', error instanceof ApiError ? error.message : 'No fue posible emitir el código de registro.');
     }
   };
 
@@ -92,24 +92,24 @@ export function LicensesPage() {
   return (
     <div className="stack">
       <section className="card">
-        <header className="page-header"><div><h1>Licencias</h1><p className="muted">Emite claves para la empresa seleccionada, o una clave de registro para una empresa nueva.</p></div></header>
+        <header className="page-header"><div><h1>Licencias</h1><p className="muted">Emite códigos de 6 dígitos para la empresa seleccionada, o un código de registro para una empresa nueva.</p></div></header>
         {issuedKey && (
           <div className="field" style={{ marginBottom: 20 }}>
             <strong>{issuedKey.label}</strong>
-            <code style={{ display: 'block', overflowWrap: 'anywhere', padding: 12, background: '#f3f4f6' }}>{issuedKey.key}</code>
-            <Button variant="ghost" onClick={() => setIssuedKey(null)}>Ocultar clave</Button>
+            <code style={{ display: 'block', overflowWrap: 'anywhere', padding: 12, background: '#f3f4f6', fontSize: 28, letterSpacing: 8, textAlign: 'center' }}>{issuedKey.key}</code>
+            <Button variant="ghost" onClick={() => setIssuedKey(null)}>Ocultar código</Button>
           </div>
         )}
-        <p className="muted">La clave de registro no necesita una empresa seleccionada: es la primera clave que se emite cuando todavía no hay empresas.</p>
+        <p className="muted">El código de registro no necesita una empresa seleccionada: es el primer código que se emite cuando todavía no hay empresas.</p>
       </section>
 
       <section className="card">
-        <h2>Clave para un nuevo registro</h2>
-        <p className="muted">Canjearla durante el registro activa la licencia de empresa y la del usuario administrador. También se puede pegar en la pantalla de activación de una empresa que ya existe. Cada clave se usa una sola vez.</p>
+        <h2>Código para un nuevo registro</h2>
+        <p className="muted">Canjearlo durante el registro activa la licencia de empresa y la del usuario administrador. También se puede escribir en la pantalla de activación de una empresa que ya existe. Cada código se usa una sola vez.</p>
         <form className="grid-2" onSubmit={submitRegistrationLicense}>
           <label className="field"><span>Vigencia (días)</span><input className="input" type="number" min="1" max="3650" value={registrationDays} onChange={(event) => setRegistrationDays(Number(event.target.value))} /></label>
           <label className="field"><span>Cupo máximo de usuarios</span><input className="input" type="number" min="1" max="100000" value={maxUsers} onChange={(event) => setMaxUsers(Number(event.target.value))} /></label>
-          <div><Button type="submit" disabled={createRegistration.isPending}>{createRegistration.isPending ? 'Emitiendo…' : 'Emitir clave de registro'}</Button></div>
+          <div><Button type="submit" disabled={createRegistration.isPending}>{createRegistration.isPending ? 'Emitiendo…' : 'Emitir código de registro'}</Button></div>
         </form>
       </section>
 

@@ -21,7 +21,10 @@ export const createRegistrationLicenseSchema = z.object({
 });
 
 export const redeemLicenseSchema = z.object({
-  key: z.string().min(16).max(512),
+  // Código de activación de 6 dígitos. Se aceptan también las claves largas
+  // emitidas antes del cambio, para no dejar sin canje las que ya están
+  // pendientes; la interfaz solo pide y muestra códigos de 6 dígitos.
+  key: z.string().min(6).max(512),
 });
 
 export type CreateLicenseInput = z.infer<typeof createLicenseSchema>;
