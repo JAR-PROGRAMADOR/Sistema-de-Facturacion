@@ -67,6 +67,8 @@ ACTIVA     →  "vencida" en la práctica cuando expires_at < ahora (no cambia e
 1. La plataforma emite el código: `POST /platform/licenses` (empresa) o
    `POST /platform/user-licenses` (usuario), indicando la duración en segundos. El código
    en texto plano se muestra **una sola vez** en la respuesta; solo su hash queda guardado.
+   En `/licencias` la vigencia se elige en minutos (mínimo 1, hasta 43.200 = 30 días) o en
+   días (hasta 3.650); la API acepta duraciones desde 60 segundos hasta 10 años.
 2. Quien lo recibe lo canjea desde su propia sesión: `POST /licenses/redeem` o
    `POST /user-licenses/redeem`. Ahí recién se fija `starts_at = ahora` y
    `expires_at = ahora + duración`.
