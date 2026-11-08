@@ -245,3 +245,16 @@ export async function findAdminRoleId(
   );
   return r.rows[0]?.id ?? null;
 }
+
+export async function findSellerRoleId(
+  c: PoolClient,
+  companyId: string,
+): Promise<string | null> {
+  const r = await c.query<{ id: string }>(
+    `SELECT id FROM roles
+      WHERE company_id = $1 AND is_system = true AND lower(name) = 'vendedor'
+      LIMIT 1`,
+    [companyId],
+  );
+  return r.rows[0]?.id ?? null;
+}

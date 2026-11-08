@@ -11,7 +11,9 @@ export const createUserSchema = z.object({
   password: z.string().min(8).max(128).optional(),
   fullName: z.string().trim().min(1).max(120),
   locale: z.enum(['es', 'en', 'tr', 'zh-CN', 'ja', 'ko']).optional(),
-  roleIds: z.array(z.string().uuid()).min(1),
+  // Aceptado por compatibilidad, pero se ignora: un usuario nuevo nace solo
+  // con el rol Vendedor (ver service.createUser).
+  roleIds: z.array(z.string().uuid()).min(1).optional(),
 });
 
 export const updateUserSchema = z.object({

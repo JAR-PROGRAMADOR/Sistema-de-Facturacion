@@ -130,21 +130,23 @@ describe.skipIf(!enabled)('Módulo users', () => {
       ).rejects.toMatchObject({ code: 'EMAIL_TAKEN', status: 409 });
     });
 
-    it('rechaza rol de otra empresa', async () => {
+    it('ignora un rol de otra empresa y asigna solo Vendedor', async () => {
       const a = await newCompany('U X A');
       const b = await newCompany('U X B');
       const roleA = await findRoleId(a, 'Vendedor');
 
-      await expect(
-        service.createUser(
-          ctx, b,
-          { email: `u-${randomUUID()}@test.local`, fullName: 'X', password: STRONG_PWD, roleIds: [roleA] },
-          { ip: null, userAgent: null },
-        ),
-      ).rejects.toMatchObject({ code: 'ROLE_CROSS_COMPANY', status: 400 });
+      // Los roles pedidos al crear se ignoran: el usuario nace solo con el
+      // Vendedor de su propia empresa, así que un rol ajeno ya no es error.
+      const user = await service.createUser(
+        ctx, b,
+        { email: `u-${randomUUID()}@test.local`, fullName: 'X', password: STRONG_PWD, roleIds: [roleA] },
+        { ip: null, userAgent: null },
+      );
+
+      expect(user.roles.map((r) => r.name)).toEqual(['Vendedor']);
     });
 
-    it('acepta varios roles para el mismo usuario', async () => {
+    it('asigna solo Vendedor aunque se pidan varios roles', async () => {
       const companyId = await newCompany('U Multi');
       const adminRoleId = await findRoleId(companyId, 'Administrador');
       const vendedorId = await findRoleId(companyId, 'Vendedor');
@@ -160,7 +162,7 @@ describe.skipIf(!enabled)('Módulo users', () => {
         { ip: null, userAgent: null },
       );
 
-      expect(user.roles.map((r) => r.name).sort()).toEqual(['Administrador', 'Vendedor']);
+      expect(user.roles.map((r) => r.name)).toEqual(['Vendedor']);
     });
   });
 
