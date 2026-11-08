@@ -96,7 +96,7 @@ export function LicensesPage() {
         {issuedKey && (
           <div className="field" style={{ marginBottom: 20 }}>
             <strong>{issuedKey.label}</strong>
-            <code style={{ display: 'block', overflowWrap: 'anywhere', padding: 12, background: '#f3f4f6', fontSize: 28, letterSpacing: 8, textAlign: 'center' }}>{issuedKey.key}</code>
+            <code style={{ display: 'block', overflowWrap: 'anywhere', padding: 12, background: '#11161d', color: '#ffffff', border: '1px solid #2f3a48', borderRadius: 10, fontSize: 28, fontWeight: 700, letterSpacing: 8, textAlign: 'center' }}>{issuedKey.key}</code>
             <Button variant="ghost" onClick={() => setIssuedKey(null)}>Ocultar código</Button>
           </div>
         )}
