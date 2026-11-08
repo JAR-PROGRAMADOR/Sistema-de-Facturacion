@@ -71,7 +71,8 @@ export function UsersPage() {
       password: form.password.trim(),
       fullName: form.fullName.trim(),
       locale: form.locale,
-      roleIds: form.roleIds,
+      // Al crear no se mandan roles: el usuario nace solo con el rol Vendedor.
+      ...(editing ? { roleIds: form.roleIds } : {}),
     };
 
     try {
@@ -237,24 +238,28 @@ export function UsersPage() {
                 </select>
               </label>
 
-              <label className="field">
-                <span>Roles</span>
-                <select
-                  multiple
-                  size={Math.min(Math.max(roles.length, 3), 8)}
-                  value={form.roleIds}
-                  onChange={(e) => {
-                    const selected = Array.from(e.target.selectedOptions, (option) => option.value);
-                    setForm((prev) => ({ ...prev, roleIds: selected }));
-                  }}
-                >
-                  {roles.map((role: Role) => (
-                    <option key={role.id} value={role.id}>
-                      {role.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              {editing ? (
+                <label className="field">
+                  <span>Roles</span>
+                  <select
+                    multiple
+                    size={Math.min(Math.max(roles.length, 3), 8)}
+                    value={form.roleIds}
+                    onChange={(e) => {
+                      const selected = Array.from(e.target.selectedOptions, (option) => option.value);
+                      setForm((prev) => ({ ...prev, roleIds: selected }));
+                    }}
+                  >
+                    {roles.map((role: Role) => (
+                      <option key={role.id} value={role.id}>
+                        {role.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : (
+                <p className="muted">Rol: Vendedor. El usuario nuevo nace solo con ese rol; si luego necesita otro, se cambia desde Editar.</p>
+              )}
             </div>
 
             <footer className="modal__footer">

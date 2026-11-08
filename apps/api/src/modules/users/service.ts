@@ -146,7 +146,18 @@ export async function createUser(
       throw new AppError('EMAIL_TAKEN', 'Ya existe un usuario con ese correo.', 409);
     }
 
-    await assertRolesBelongToCompany(c, companyId, input.roleIds);
+    // Un usuario nuevo nace solo con el rol Vendedor: los roles que se manden
+    // en la petición se ignoran, para que nadie pueda crear un Administrador
+    // desde el formulario de alta. Cambiar roles después sigue siendo posible
+    // desde Editar (updateUser).
+    const sellerRoleId = await repo.findSellerRoleId(c, companyId);
+    if (!sellerRoleId) {
+      throw new AppError(
+        'SELLER_ROLE_NOT_FOUND',
+        'La empresa no tiene el rol Vendedor.',
+        500,
+      );
+    }
 
     await repo.insertUser(c, {
       id,
@@ -156,15 +167,13 @@ export async function createUser(
       locale,
     });
 
-    for (const roleId of input.roleIds) {
-      await repo.insertMembership(c, companyId, id, roleId, 'ACTIVO');
-    }
+    await repo.insertMembership(c, companyId, id, sellerRoleId, 'ACTIVO');
 
     await insertAudit(c, {
       companyId,
       action: 'user.created',
       ip: meta.ip,
-      metadata: { userId: id, email: input.email, roleIds: input.roleIds },
+      metadata: { userId: id, email: input.email, roleIds: [sellerRoleId] },
     });
 
     return group(await repo.findMembershipsByUser(c, companyId, id))[0]!;

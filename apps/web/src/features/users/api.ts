@@ -27,7 +27,8 @@ export interface CreateUserInput {
   password: string;
   fullName: string;
   locale?: 'es' | 'en' | 'tr' | 'zh-CN' | 'ja' | 'ko';
-  roleIds: string[];
+  // Opcional y se ignora: un usuario nuevo nace solo con el rol Vendedor.
+  roleIds?: string[];
 }
 
 export interface UpdateUserInput {
