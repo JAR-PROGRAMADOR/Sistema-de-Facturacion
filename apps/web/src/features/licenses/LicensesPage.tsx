@@ -18,13 +18,68 @@ function formatDate(value: string | null): string {
   return value ? new Date(value).toLocaleString() : '—';
 }
 
+type DurationUnit = 'minutes' | 'days';
+
+const MAX_MINUTES = 43_200; // 30 días en minutos
+const MAX_DAYS = 3_650; // 10 años en días
+
+function clampDuration(value: number, unit: DurationUnit): number {
+  const max = unit === 'minutes' ? MAX_MINUTES : MAX_DAYS;
+  if (!Number.isFinite(value)) return 1;
+  return Math.min(Math.max(Math.trunc(value), 1), max);
+}
+
+function toDurationSeconds(value: number, unit: DurationUnit): number {
+  const clamped = clampDuration(value, unit);
+  return unit === 'minutes' ? clamped * 60 : clamped * 86_400;
+}
+
+function DurationField({ label, value, unit, onChange }: {
+  label: string;
+  value: number;
+  unit: DurationUnit;
+  onChange: (value: number, unit: DurationUnit) => void;
+}) {
+  return (
+    <label className="field">
+      <span>{label}</span>
+      <span style={{ display: 'flex', gap: 8 }}>
+        <input
+          className="input"
+          style={{ flex: 1, minWidth: 0 }}
+          type="number"
+          min="1"
+          max={unit === 'minutes' ? MAX_MINUTES : MAX_DAYS}
+          value={value}
+          onChange={(event) => onChange(Number(event.target.value), unit)}
+        />
+        <select
+          className="input"
+          style={{ width: 'auto', flex: 'none' }}
+          value={unit}
+          onChange={(event) => {
+            const nextUnit = event.target.value as DurationUnit;
+            onChange(clampDuration(value, nextUnit), nextUnit);
+          }}
+        >
+          <option value="minutes">Minutos</option>
+          <option value="days">Días</option>
+        </select>
+      </span>
+    </label>
+  );
+}
+
 export function LicensesPage() {
   const { push } = useToast();
   const { companyId, isPlatform, isLoading: companyLoading } = useActiveCompany();
   const [companyDays, setCompanyDays] = useState(365);
+  const [companyUnit, setCompanyUnit] = useState<DurationUnit>('days');
   const [maxUsers, setMaxUsers] = useState(5);
   const [userDays, setUserDays] = useState(365);
+  const [userUnit, setUserUnit] = useState<DurationUnit>('days');
   const [registrationDays, setRegistrationDays] = useState(365);
+  const [registrationUnit, setRegistrationUnit] = useState<DurationUnit>('days');
   const [userId, setUserId] = useState('');
   const [issuedKey, setIssuedKey] = useState<{ key: string; label: string } | null>(null);
 
@@ -43,7 +98,7 @@ export function LicensesPage() {
     event.preventDefault();
     if (!companyId) return;
     try {
-      const result = await createCompany.mutateAsync({ durationSeconds: Number(companyDays) * 86_400, maxUsers: Number(maxUsers) });
+      const result = await createCompany.mutateAsync({ durationSeconds: toDurationSeconds(companyDays, companyUnit), maxUsers: Number(maxUsers) });
       setIssuedKey({ key: result.key, label: 'Código de licencia de empresa' });
       push('success', 'Código de empresa emitido. Anota el código de 6 dígitos ahora; no volverá a mostrarse.');
     } catch (error) {
@@ -55,7 +110,7 @@ export function LicensesPage() {
     event.preventDefault();
     if (!companyId || !userId) return;
     try {
-      const result = await createUser.mutateAsync({ durationSeconds: Number(userDays) * 86_400 });
+      const result = await createUser.mutateAsync({ durationSeconds: toDurationSeconds(userDays, userUnit) });
       setIssuedKey({ key: result.key, label: 'Código de licencia de usuario' });
       push('success', 'Código de usuario emitido. Anota el código de 6 dígitos ahora; no volverá a mostrarse.');
     } catch (error) {
@@ -67,7 +122,7 @@ export function LicensesPage() {
     event.preventDefault();
     try {
       const result = await createRegistration.mutateAsync({
-        durationSeconds: Number(registrationDays) * 86_400,
+        durationSeconds: toDurationSeconds(registrationDays, registrationUnit),
         maxUsers: Number(maxUsers),
       });
       setIssuedKey({ key: result.key, label: 'Código de registro de un solo uso' });
@@ -107,7 +162,7 @@ export function LicensesPage() {
         <h2>Código para un nuevo registro</h2>
         <p className="muted">Canjearlo durante el registro activa la licencia de empresa y la del usuario administrador. También se puede escribir en la pantalla de activación de una empresa que ya existe. Cada código se usa una sola vez.</p>
         <form className="grid-2" onSubmit={submitRegistrationLicense}>
-          <label className="field"><span>Vigencia (días)</span><input className="input" type="number" min="1" max="3650" value={registrationDays} onChange={(event) => setRegistrationDays(Number(event.target.value))} /></label>
+          <DurationField label="Vigencia" value={registrationDays} unit={registrationUnit} onChange={(value, unit) => { setRegistrationDays(value); setRegistrationUnit(unit); }} />
           <label className="field"><span>Cupo máximo de usuarios</span><input className="input" type="number" min="1" max="100000" value={maxUsers} onChange={(event) => setMaxUsers(Number(event.target.value))} /></label>
           <div><Button type="submit" disabled={createRegistration.isPending}>{createRegistration.isPending ? 'Emitiendo…' : 'Emitir código de registro'}</Button></div>
         </form>
@@ -120,7 +175,7 @@ export function LicensesPage() {
       <section className="card">
         <h2>Emitir licencia de empresa</h2>
         <form className="grid-2" onSubmit={submitCompanyLicense}>
-          <label className="field"><span>Vigencia de empresa (días)</span><input className="input" type="number" min="1" max="3650" value={companyDays} onChange={(event) => setCompanyDays(Number(event.target.value))} /></label>
+          <DurationField label="Vigencia de empresa" value={companyDays} unit={companyUnit} onChange={(value, unit) => { setCompanyDays(value); setCompanyUnit(unit); }} />
           <label className="field"><span>Cupo máximo de usuarios</span><input className="input" type="number" min="1" max="100000" value={maxUsers} onChange={(event) => setMaxUsers(Number(event.target.value))} /></label>
           <div><Button type="submit" disabled={createCompany.isPending}>{createCompany.isPending ? 'Emitiendo…' : 'Emitir licencia de empresa'}</Button></div>
         </form>
@@ -145,7 +200,7 @@ export function LicensesPage() {
         <h2>Licencias por usuario</h2>
         <form className="grid-2" onSubmit={submitUserLicense}>
           <label className="field"><span>Usuario</span><select className="input" value={userId} onChange={(event) => setUserId(event.target.value)}><option value="">Selecciona un usuario activo</option>{users.map((user) => <option key={user.id} value={user.id}>{user.fullName} · {user.email}</option>)}</select></label>
-          <label className="field"><span>Vigencia (días)</span><input className="input" type="number" min="1" max="3650" value={userDays} onChange={(event) => setUserDays(Number(event.target.value))} /></label>
+          <DurationField label="Vigencia" value={userDays} unit={userUnit} onChange={(value, unit) => { setUserDays(value); setUserUnit(unit); }} />
           <div><Button type="submit" disabled={!userId || createUser.isPending}>{createUser.isPending ? 'Emitiendo…' : 'Emitir licencia de usuario'}</Button></div>
         </form>
         {userId && (userLicenses.isLoading ? <div className="center"><Spinner /></div> : userLicenses.isError ? <p className="field__error">No fue posible cargar las licencias de usuario.</p> : (
