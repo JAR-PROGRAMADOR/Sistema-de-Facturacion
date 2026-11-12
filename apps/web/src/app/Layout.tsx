@@ -2,6 +2,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../shared/auth/AuthProvider';
 import { CompanyPicker } from '../shared/ui/CompanyPicker';
+import { Logo } from '../shared/ui/Logo';
 import { LANGUAGES } from '../i18n';
 
 export function Layout() {
@@ -45,7 +46,9 @@ export function Layout() {
   return (
     <div className={`app-shell${isDashboard ? ' app-shell--dashboard' : ''}`}>
       <aside className="sidebar">
-        <h2 className="sidebar__brand">{t('app.title')}</h2>
+        <div className="sidebar__brand">
+          <Logo />
+        </div>
         <nav className="sidebar__nav">
           <NavLink to="/inicio" className={linkClass}>
             Inicio

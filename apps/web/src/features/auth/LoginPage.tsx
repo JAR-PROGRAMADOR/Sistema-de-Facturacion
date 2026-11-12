@@ -8,6 +8,7 @@ import { ApiError } from '../../shared/api/error';
 import { useToast } from '../../shared/ui/Toast';
 import { Field } from '../../shared/ui/Field';
 import { Input } from '../../shared/ui/Input';
+import { Logo } from '../../shared/ui/Logo';
 
 const schema = z.object({
   email: z.string().trim().email('Correo inválido'),
@@ -52,6 +53,9 @@ export function LoginPage() {
   return (
     <main className="auth-shell">
       <form className="card auth-card" onSubmit={onSubmit} noValidate>
+        <div className="auth-brand">
+          <Logo size={44} />
+        </div>
         <h1>Iniciar sesión</h1>
 
         <Field label="Correo" error={errors.email?.message}>
