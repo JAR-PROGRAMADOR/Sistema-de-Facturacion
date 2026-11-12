@@ -6,10 +6,33 @@ import { LANGUAGES } from '../i18n';
 
 export function Layout() {
   const { t, i18n } = useTranslation();
-  const { signOut, isPlatform, claims } = useAuth();
+  const { signOut, isPlatform } = useAuth();
   const nav = useNavigate();
   const location = useLocation();
   const isDashboard = location.pathname === '/inicio';
+
+  // Título de la página según la ruta. Antes mostraba el id del usuario
+  // (claims.sub, un UUID), que se veía feo junto a la insignia Plataforma.
+  const pageTitles: Record<string, string> = {
+    '/inicio': 'Panel de control',
+    '/empresas': t('nav.companies', 'Empresas'),
+    '/licencias': 'Licencias',
+    '/roles': t('nav.roles', 'Roles'),
+    '/usuarios': t('nav.users', 'Usuarios'),
+    '/productos': 'Productos',
+    '/categorias': 'Categorías',
+    '/inventario': 'Inventario',
+    '/clientes': 'Clientes',
+    '/proveedores': 'Proveedores',
+    '/ventas': 'Ventas',
+    '/caja': 'Caja',
+    '/facturas': 'Facturas',
+    '/reportes': 'Reportes',
+    '/auditoria': 'Auditoría',
+    '/compras': 'Compras',
+    '/configuracion': 'Configuración',
+  };
+  const pageTitle = pageTitles[location.pathname] ?? '';
 
   const handleSignOut = async () => {
     await signOut();
@@ -85,7 +108,7 @@ export function Layout() {
       <div className="app-main">
         <header className="app-header">
           <div className="app-header__meta">
-            <span className="app-header__title">{isDashboard ? 'Panel de control' : (claims?.sub != null ? String(claims.sub) : '')}</span>
+            <span className="app-header__title">{pageTitle}</span>
             {isPlatform && <span className="badge">{t('auth.platform', 'Plataforma')}</span>}
           </div>
           <div className="app-header__actions">
