@@ -1629,3 +1629,91 @@ table tbody tr:hover, .table tbody tr:hover { background: #171e27; }
     text-align: left;
   }
 }
+/* --- Logo original del software --- */
+.logo { display: inline-flex; align-items: center; gap: 10px; }
+.logo__mark { display: block; flex: 0 0 auto; }
+.logo__word { display: grid; gap: 1px; line-height: 1.15; }
+.logo__word strong { color: #f0f4fb; font-size: 1.02rem; font-weight: 750; letter-spacing: -.02em; }
+.logo__word span { color: #8d99a9; font-size: .58rem; font-weight: 750; letter-spacing: .16em; }
+.auth-brand { display: flex; justify-content: center; margin: 2px 0 4px; }
+.auth-brand .logo__word strong { color: #edf2fa; }
+.auth-brand .logo__word span { color: #929eaf; }
+
+/* --- Dashboard: diseño Dashdark con los colores de la app --- */
+.dashboard__welcome {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.dashboard__welcome h1 {
+  margin: 8px 0 4px;
+  color: #f3f6fb;
+  font-size: clamp(1.6rem, 2.6vw, 2.1rem);
+  letter-spacing: -.045em;
+}
+.dashboard__welcome p { margin: 0; color: #98a4b3; }
+.dashboard__welcome-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.dashboard__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 210px;
+  padding: 0 10px;
+  border: 1px solid #29313c;
+  border-radius: 10px;
+  color: #8491a2;
+  background: #141920;
+}
+.dashboard__search input {
+  flex: 1;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0;
+  border: 0;
+  color: #e2e9f2;
+  background: transparent;
+  box-shadow: none;
+}
+.dashboard__search input:focus { outline: none; border: 0; box-shadow: none; }
+.dashboard__search:focus-within { border-color: #438dff; box-shadow: 0 0 0 3px rgba(67, 141, 255, .18); }
+.dashboard__delta {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: .68rem;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.dashboard__delta--up { color: #7de0ba; background: rgba(53, 189, 142, .14); }
+.dashboard__delta--down { color: #ff9a9a; background: rgba(224, 92, 100, .14); }
+.dashboard__delta--flat { color: #929eaf; background: rgba(146, 158, 175, .14); }
+.dashboard__metric-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.dashboard__charts { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 14px; }
+.dashboard__side { display: grid; gap: 14px; align-content: start; }
+.dashboard__side-card { padding: 21px; }
+.app-shell--dashboard .dashboard__side-card {
+  min-width: 0;
+  border: 1px solid #222a34;
+  border-radius: 15px;
+  background: #11161d;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .14);
+}
+.dashboard__chart-area { fill: url(#sales-area-fill); }
+.dashboard__chart-area--spark { fill: url(#sales-spark-fill); }
+.dashboard__chart-bar--count { fill: url(#sales-count-fill); }
+.dashboard__spark { display: block; width: 100%; height: auto; overflow: visible; }
+.dashboard__side-total { display: grid; gap: 2px; justify-items: end; }
+.dashboard__side-total span { color: #7e8b9b; font-size: .68rem; }
+.dashboard__side-total strong { color: #eaf0f8; font-size: 1.05rem; }
+
+@media (max-width: 1000px) {
+  .dashboard__charts { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .dashboard__welcome-actions { width: 100%; }
+  .dashboard__search { flex: 1; }
+}
