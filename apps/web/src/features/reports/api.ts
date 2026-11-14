@@ -9,7 +9,9 @@ export interface SalesSummary {
   discountTotal: number;
   taxTotal: number;
   total: number;
-  daily: Array<{ day: string; salesCount: number; total: number }>;
+  totalCost: number;
+  grossProfit: number;
+  daily: Array<{ day: string; salesCount: number; total: number; cost: number }>;
 }
 
 export interface TopProduct {

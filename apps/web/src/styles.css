@@ -1717,3 +1717,59 @@ table tbody tr:hover, .table tbody tr:hover { background: #171e27; }
   .dashboard__welcome-actions { width: 100%; }
   .dashboard__search { flex: 1; }
 }
+
+/* --- Menú lateral con grupos plegables --- */
+.sidebar__group { display: grid; gap: 2px; }
+.sidebar__group-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 0;
+  padding: 10px 10px 5px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: #7e8b9c;
+  font-size: .62rem;
+  font-weight: 750;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  text-align: left;
+  cursor: pointer;
+}
+.sidebar__group-toggle:hover { color: #c4cede; background: none; box-shadow: none; transform: none; }
+.sidebar__group-toggle span:last-child { font-size: .7rem; letter-spacing: 0; }
+.sidebar__group-links { display: grid; gap: 4px; }
+
+/* --- Gráficas del panel (Recharts) --- */
+.dashboard__chart-legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 2px 0 10px;
+  color: #a4afbd;
+  font-size: .75rem;
+}
+.dashboard__chart-legend > span { display: inline-flex; align-items: center; gap: 6px; }
+.dashboard__legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+.dashboard__legend-dot--revenue { background: #438dff; box-shadow: 0 0 8px rgba(67, 141, 255, .7); }
+.dashboard__legend-dot--cost { background: #43d5a5; box-shadow: 0 0 8px rgba(67, 213, 165, .7); }
+.dashboard__tooltip {
+  display: grid;
+  gap: 5px;
+  padding: 10px 12px;
+  border: 1px solid #2b333f;
+  border-radius: 10px;
+  background: rgba(17, 22, 29, .96);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .35);
+  color: #dce4ef;
+  font-size: .78rem;
+}
+.dashboard__tooltip-date { color: #8491a2; font-size: .68rem; font-weight: 700; letter-spacing: .08em; }
+.dashboard__tooltip-row { display: flex; align-items: center; gap: 7px; }
+.dashboard__tooltip-row i { flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%; }
+.dashboard__tooltip-row strong { margin-left: auto; padding-left: 12px; color: #f0f4fb; font-variant-numeric: tabular-nums; }
+.recharts-wrapper:focus, .recharts-surface:focus { outline: none; }
