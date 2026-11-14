@@ -168,7 +168,8 @@ export function DashboardPage() {
         </div>
       )}
 
-      <section className="dashboard__metrics">
+      <div className="dashboard__frame">
+        <section className="dashboard__metrics">
         <article className="dashboard__metric dashboard__metric--revenue">
           <div className="dashboard__metric-top"><span className="dashboard__metric-icon">↗</span><span className="dashboard__metric-period">30 DÍAS</span></div>
           <span className="dashboard__metric-label">Ingresos totales</span>
@@ -242,14 +243,14 @@ export function DashboardPage() {
                   <CartesianGrid stroke="#252d37" strokeDasharray="3 6" vertical={false} />
                   <XAxis
                     dataKey="label"
-                    tick={{ fill: '#7c8999', fontSize: 11 }}
+                    tick={{ fill: '#7c8999', fontSize: 12 }}
                     tickLine={false}
                     axisLine={false}
                     interval={4}
                   />
                   <YAxis
                     tickFormatter={compactNumber}
-                    tick={{ fill: '#7c8999', fontSize: 11 }}
+                    tick={{ fill: '#7c8999', fontSize: 12 }}
                     tickLine={false}
                     axisLine={false}
                     width={48}
@@ -298,7 +299,7 @@ export function DashboardPage() {
                     </defs>
                     <XAxis
                       dataKey="label"
-                      tick={{ fill: '#7c8999', fontSize: 11 }}
+                      tick={{ fill: '#7c8999', fontSize: 12 }}
                       tickLine={false}
                       axisLine={false}
                       interval={14}
@@ -334,7 +335,7 @@ export function DashboardPage() {
                     </defs>
                     <XAxis
                       dataKey="label"
-                      tick={{ fill: '#7c8999', fontSize: 11 }}
+                      tick={{ fill: '#7c8999', fontSize: 12 }}
                       tickLine={false}
                       axisLine={false}
                       interval="preserveStartEnd"
@@ -393,6 +394,7 @@ export function DashboardPage() {
             </div>
           )}
         </section>
+      </div>
       </div>
     </div>
   );

@@ -289,7 +289,7 @@ body { margin: 0; }
 .dashboard__hero-header { position: relative; z-index: 1; align-items: flex-start; }
 .dashboard__hero h1 { margin: 8px 0; font-size: clamp(1.7rem, 3vw, 2.25rem); letter-spacing: -0.04em; }
 .dashboard__hero p { margin: 0; color: #c9d6e8; }
-.dashboard__eyebrow { color: #8be5cc; font-size: .7rem; font-weight: 750; letter-spacing: .13em; }
+.dashboard__eyebrow { color: #8be5cc; font-size: .78rem; font-weight: 750; letter-spacing: .13em; }
 .dashboard__eyebrow--light { color: #69809f; }
 .dashboard__action {
   display: inline-flex;
@@ -334,7 +334,7 @@ body { margin: 0; }
 .dashboard__section-header { align-items: flex-start; margin-bottom: 18px; }
 .dashboard__section-header h2 { margin: 5px 0 4px; font-size: 1.08rem; letter-spacing: -.02em; }
 .dashboard__section-header p { margin: 0; }
-.dashboard__text-link { color: #3165b4; font-size: .84rem; font-weight: 650; text-decoration: none; white-space: nowrap; }
+.dashboard__text-link { color: #3165b4; font-size: .92rem; font-weight: 650; text-decoration: none; white-space: nowrap; }
 .dashboard__text-link:hover { color: #194b94; text-decoration: underline; }
 .dashboard__chart-wrap { width: 100%; }
 .dashboard__chart { display: block; width: 100%; height: auto; overflow: visible; }
@@ -903,7 +903,7 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--color-primary)
   flex-direction: column;
   gap: 18px;
 }
-.dashboard__date { color: #99a5b4; font-size: .78rem; }
+.dashboard__date { color: #99a5b4; font-size: .86rem; }
 .app-shell--dashboard .dashboard__action {
   color: #f4f7fc;
   border: 1px solid #343d49;
@@ -939,7 +939,7 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--color-primary)
   gap: 7px;
   padding: 18px;
   border: 1px solid #222a34;
-  border-radius: 15px;
+  border-radius: 18px;
   background: linear-gradient(145deg, #131920, #10151b);
   box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
   backdrop-filter: none;
@@ -958,27 +958,27 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--color-primary)
 }
 .dashboard__metric-icon {
   display: grid;
-  width: 31px;
-  height: 31px;
+  width: 34px;
+  height: 34px;
   place-items: center;
   border: 1px solid rgba(255,255,255,.1);
   border-radius: 9px;
   color: #80e2c2;
   background: rgba(47, 187, 144, .12);
-  font-size: 1.06rem;
+  font-size: 1.15rem;
   font-weight: 750;
 }
 .dashboard__metric--count .dashboard__metric-icon { color: #7ab5ff; background: rgba(57, 141, 242, .15); }
 .dashboard__metric--tax .dashboard__metric-icon { color: #c19aff; background: rgba(142, 92, 230, .15); }
 .dashboard__metric--stock .dashboard__metric-icon { color: #f5bb6e; background: rgba(239, 157, 56, .13); }
-.dashboard__metric-period { color: #667385; font-size: .59rem; font-weight: 750; letter-spacing: .1em; }
-.app-shell--dashboard .dashboard__metric-label { color: #a4afbd; font-size: .77rem; }
+.dashboard__metric-period { color: #667385; font-size: .66rem; font-weight: 750; letter-spacing: .1em; }
+.app-shell--dashboard .dashboard__metric-label { color: #a4afbd; font-size: .86rem; }
 .app-shell--dashboard .dashboard__metric strong {
   color: #f2f5fa;
-  font-size: clamp(1.35rem, 2vw, 1.8rem);
+  font-size: clamp(1.65rem, 2.4vw, 2.15rem);
   letter-spacing: -.045em;
 }
-.app-shell--dashboard .dashboard__metric-note { color: #737f8f; font-size: .7rem; }
+.app-shell--dashboard .dashboard__metric-note { color: #737f8f; font-size: .78rem; }
 .dashboard__mini-bars {
   position: absolute;
   right: 16px;
@@ -1011,7 +1011,7 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--color-primary)
   z-index: 1;
   margin-top: 4px;
   color: #efbd79;
-  font-size: .7rem;
+  font-size: .78rem;
   text-decoration: none;
 }
 .dashboard__metric-link:hover { color: #ffd59d; }
@@ -1019,7 +1019,7 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--color-primary)
 .app-shell--dashboard .dashboard__details > .card {
   min-width: 0;
   border: 1px solid #222a34;
-  border-radius: 15px;
+  border-radius: 18px;
   background: #11161d;
   box-shadow: 0 10px 28px rgba(0, 0, 0, .14);
 }
@@ -1027,13 +1027,13 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--color-primary)
 .app-shell--dashboard .dashboard__section-header h2 {
   margin: 6px 0;
   color: #e7edf7;
-  font-size: 1.02rem;
+  font-size: 1.2rem;
 }
-.app-shell--dashboard .dashboard__section-header p { color: #8491a1; }
+.app-shell--dashboard .dashboard__section-header p { color: #8491a1; font-size: .95rem; }
 .app-shell--dashboard .dashboard__eyebrow--light { color: #8291a5; }
 .dashboard__chart-total { display: grid; gap: 3px; justify-items: end; }
-.dashboard__chart-total span { color: #7e8b9b; font-size: .68rem; }
-.dashboard__chart-total strong { color: #eaf0f8; font-size: 1.05rem; }
+.dashboard__chart-total span { color: #7e8b9b; font-size: .76rem; }
+.dashboard__chart-total strong { color: #eaf0f8; font-size: 1.2rem; }
 .app-shell--dashboard .dashboard__chart-grid { stroke: #252d37; stroke-dasharray: 3 6; }
 .app-shell--dashboard .dashboard__chart-label { fill: #7c8999; }
 .app-shell--dashboard .dashboard__chart-line { stroke: #43d5a5; stroke-width: 3; }
@@ -1048,6 +1048,7 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--color-primary)
   border-color: #242c36;
   background: transparent;
   color: #d8e0eb;
+  font-size: .95rem;
 }
 .app-shell--dashboard .dashboard__details .table th {
   color: #798697;
@@ -1640,6 +1641,24 @@ table tbody tr:hover, .table tbody tr:hover { background: #171e27; }
 .auth-brand .logo__word span { color: #929eaf; }
 
 /* --- Dashboard: diseño Dashdark con los colores de la app --- */
+/* Tipografía del panel: Plus Jakarta Sans, más grande que el resto de la app. */
+.app-shell--dashboard .dashboard,
+.app-shell--dashboard .dashboard h1,
+.app-shell--dashboard .dashboard h2,
+.app-shell--dashboard .dashboard h3,
+.app-shell--dashboard .dashboard h4 {
+  font-family: "Plus Jakarta Sans Variable", "Manrope Variable", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+}
+/* Marco redondeado que agrupa el contenido del panel. */
+.dashboard__frame {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid #222a34;
+  border-radius: 22px;
+  background: #0b0f15;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .16);
+}
 .dashboard__welcome {
   display: flex;
   justify-content: space-between;
@@ -1650,10 +1669,10 @@ table tbody tr:hover, .table tbody tr:hover { background: #171e27; }
 .dashboard__welcome h1 {
   margin: 8px 0 4px;
   color: #f3f6fb;
-  font-size: clamp(1.6rem, 2.6vw, 2.1rem);
+  font-size: clamp(1.9rem, 3vw, 2.5rem);
   letter-spacing: -.045em;
 }
-.dashboard__welcome p { margin: 0; color: #98a4b3; }
+.dashboard__welcome p { margin: 0; color: #98a4b3; font-size: 1rem; }
 .dashboard__welcome-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
 .dashboard__search {
   display: flex;
@@ -1675,6 +1694,7 @@ table tbody tr:hover, .table tbody tr:hover { background: #171e27; }
   color: #e2e9f2;
   background: transparent;
   box-shadow: none;
+  font-size: .95rem;
 }
 .dashboard__search input:focus { outline: none; border: 0; box-shadow: none; }
 .dashboard__search:focus-within { border-color: #438dff; box-shadow: 0 0 0 3px rgba(67, 141, 255, .18); }
@@ -1683,7 +1703,7 @@ table tbody tr:hover, .table tbody tr:hover { background: #171e27; }
   align-items: center;
   padding: 3px 8px;
   border-radius: 999px;
-  font-size: .68rem;
+  font-size: .76rem;
   font-weight: 750;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -1698,7 +1718,7 @@ table tbody tr:hover, .table tbody tr:hover { background: #171e27; }
 .app-shell--dashboard .dashboard__side-card {
   min-width: 0;
   border: 1px solid #222a34;
-  border-radius: 15px;
+  border-radius: 18px;
   background: #11161d;
   box-shadow: 0 10px 28px rgba(0, 0, 0, .14);
 }
@@ -1707,8 +1727,8 @@ table tbody tr:hover, .table tbody tr:hover { background: #171e27; }
 .dashboard__chart-bar--count { fill: url(#sales-count-fill); }
 .dashboard__spark { display: block; width: 100%; height: auto; overflow: visible; }
 .dashboard__side-total { display: grid; gap: 2px; justify-items: end; }
-.dashboard__side-total span { color: #7e8b9b; font-size: .68rem; }
-.dashboard__side-total strong { color: #eaf0f8; font-size: 1.05rem; }
+.dashboard__side-total span { color: #7e8b9b; font-size: .76rem; }
+.dashboard__side-total strong { color: #eaf0f8; font-size: 1.2rem; }
 
 @media (max-width: 1000px) {
   .dashboard__charts { grid-template-columns: 1fr; }
@@ -1751,7 +1771,7 @@ table tbody tr:hover, .table tbody tr:hover { background: #171e27; }
   gap: 16px;
   margin: 2px 0 10px;
   color: #a4afbd;
-  font-size: .75rem;
+  font-size: .86rem;
 }
 .dashboard__chart-legend > span { display: inline-flex; align-items: center; gap: 6px; }
 .dashboard__legend-dot { width: 8px; height: 8px; border-radius: 50%; }
@@ -1766,9 +1786,9 @@ table tbody tr:hover, .table tbody tr:hover { background: #171e27; }
   background: rgba(17, 22, 29, .96);
   box-shadow: 0 10px 28px rgba(0, 0, 0, .35);
   color: #dce4ef;
-  font-size: .78rem;
+  font-size: .86rem;
 }
-.dashboard__tooltip-date { color: #8491a2; font-size: .68rem; font-weight: 700; letter-spacing: .08em; }
+.dashboard__tooltip-date { color: #8491a2; font-size: .74rem; font-weight: 700; letter-spacing: .08em; }
 .dashboard__tooltip-row { display: flex; align-items: center; gap: 7px; }
 .dashboard__tooltip-row i { flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%; }
 .dashboard__tooltip-row strong { margin-left: auto; padding-left: 12px; color: #f0f4fb; font-variant-numeric: tabular-nums; }
