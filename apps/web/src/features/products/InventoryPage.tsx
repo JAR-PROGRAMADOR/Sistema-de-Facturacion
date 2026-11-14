@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useActiveCompany } from '../../shared/auth/ActiveCompanyContext';
+import { NumberInput } from '../../shared/ui/NumberInput';
 import { useAdjustStock, useInventory } from './api';
 
 export function InventoryPage() {
@@ -45,7 +46,7 @@ export function InventoryPage() {
           </label>
           <label>
             Cantidad
-            <input type="number" step="1" value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} />
+            <NumberInput value={quantity} onValueChange={(v) => setQuantity(v ?? 0)} decimals={0} />
           </label>
           <label className="full-width">
             Motivo
