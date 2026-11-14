@@ -55,7 +55,7 @@ export async function getSalesSummary(
               COALESCE(sum(sc.cost_total), 0)::text AS cost
          FROM sales s
          LEFT JOIN (
-           SELECT si.sale_id, sum(si.quantity * p.cost)::text AS cost_total
+           SELECT si.sale_id, sum(si.quantity * p.cost) AS cost_total
              FROM sale_items si
              JOIN products p ON p.company_id = si.company_id AND p.id = si.product_id
             WHERE si.company_id = $1

@@ -81,6 +81,11 @@ describe.skipIf(!enabled)('Reportes y auditoría', () => {
     const summary = await reportsService.getSalesSummary(ctx, companyId, period);
     expect(summary.salesCount).toBe(1);
     expect(summary.total).toBe(12);
+    // El producto no tiene costo, así que el costo es 0 y la utilidad es el total.
+    expect(summary.totalCost).toBe(0);
+    expect(summary.grossProfit).toBe(12);
+    expect(summary.daily).toHaveLength(1);
+    expect(summary.daily[0]?.cost).toBe(0);
 
     const top = await reportsService.getTopProducts(ctx, companyId, { ...period, limit: 10 });
     expect(top[0]?.name).toBe('Producto de reporte');
