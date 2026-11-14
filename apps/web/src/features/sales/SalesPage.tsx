@@ -3,6 +3,7 @@ import { ApiError } from '../../shared/api/error';
 import { Button } from '../../shared/auth/Button';
 import { useActiveCompany } from '../../shared/auth/ActiveCompanyContext';
 import { useOpenCashSession } from '../cash/api';
+import { NumberInput } from '../../shared/ui/NumberInput';
 import { Spinner } from '../../shared/ui/Spinner';
 import { useToast } from '../../shared/ui/Toast';
 import { useCustomers, type Customer } from '../customers/api';
@@ -119,7 +120,7 @@ export function SalesPage() {
                   {products.map((product) => <option key={product.id} value={product.id}>{product.sku} · {product.name} · {product.price.toFixed(2)}</option>)}
                 </select>
               </label>
-              <label className="field"><span>Cantidad</span><input className="input" type="number" min="0.001" step="0.001" value={quantity} onChange={(event) => setQuantity(Number(event.target.value))} /></label>
+              <label className="field"><span>Cantidad</span><NumberInput value={quantity} onValueChange={(v) => setQuantity(v ?? 0)} decimals={3} /></label>
             </div>
             <div style={{ marginTop: 12 }}><Button onClick={addProduct} disabled={!productId || quantity <= 0}>Agregar al carrito</Button></div>
             <div className="table-wrap" style={{ marginTop: 20 }}>

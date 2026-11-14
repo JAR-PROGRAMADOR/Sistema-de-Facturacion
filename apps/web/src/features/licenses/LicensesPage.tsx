@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ApiError } from '../../shared/api/error';
 import { Button } from '../../shared/auth/Button';
 import { useActiveCompany } from '../../shared/auth/ActiveCompanyContext';
+import { NumberInput } from '../../shared/ui/NumberInput';
 import { Spinner } from '../../shared/ui/Spinner';
 import { useToast } from '../../shared/ui/Toast';
 import { useUsers } from '../users/api';
@@ -44,14 +45,13 @@ function DurationField({ label, value, unit, onChange }: {
     <label className="field">
       <span>{label}</span>
       <span style={{ display: 'flex', gap: 8 }}>
-        <input
-          className="input"
+        <NumberInput
           style={{ flex: 1, minWidth: 0 }}
-          type="number"
-          min="1"
-          max={unit === 'minutes' ? MAX_MINUTES : MAX_DAYS}
           value={value}
-          onChange={(event) => onChange(Number(event.target.value), unit)}
+          onValueChange={(v) => onChange(v ?? 1, unit)}
+          decimals={0}
+          min={1}
+          max={unit === 'minutes' ? MAX_MINUTES : MAX_DAYS}
         />
         <select
           className="input"
@@ -163,7 +163,7 @@ export function LicensesPage() {
         <p className="muted">Canjearlo durante el registro activa la licencia de empresa y la del usuario administrador. También se puede escribir en la pantalla de activación de una empresa que ya existe. Cada código se usa una sola vez.</p>
         <form className="grid-2" onSubmit={submitRegistrationLicense}>
           <DurationField label="Vigencia" value={registrationDays} unit={registrationUnit} onChange={(value, unit) => { setRegistrationDays(value); setRegistrationUnit(unit); }} />
-          <label className="field"><span>Cupo máximo de usuarios</span><input className="input" type="number" min="1" max="100000" value={maxUsers} onChange={(event) => setMaxUsers(Number(event.target.value))} /></label>
+          <label className="field"><span>Cupo máximo de usuarios</span><NumberInput value={maxUsers} onValueChange={(v) => setMaxUsers(v ?? 1)} decimals={0} min={1} max={100000} /></label>
           <div><Button type="submit" disabled={createRegistration.isPending}>{createRegistration.isPending ? 'Emitiendo…' : 'Emitir código de registro'}</Button></div>
         </form>
       </section>
@@ -176,7 +176,7 @@ export function LicensesPage() {
         <h2>Emitir licencia de empresa</h2>
         <form className="grid-2" onSubmit={submitCompanyLicense}>
           <DurationField label="Vigencia de empresa" value={companyDays} unit={companyUnit} onChange={(value, unit) => { setCompanyDays(value); setCompanyUnit(unit); }} />
-          <label className="field"><span>Cupo máximo de usuarios</span><input className="input" type="number" min="1" max="100000" value={maxUsers} onChange={(event) => setMaxUsers(Number(event.target.value))} /></label>
+          <label className="field"><span>Cupo máximo de usuarios</span><NumberInput value={maxUsers} onValueChange={(v) => setMaxUsers(v ?? 1)} decimals={0} min={1} max={100000} /></label>
           <div><Button type="submit" disabled={createCompany.isPending}>{createCompany.isPending ? 'Emitiendo…' : 'Emitir licencia de empresa'}</Button></div>
         </form>
       </section>

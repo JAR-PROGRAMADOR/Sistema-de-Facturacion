@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ApiError } from '../../shared/api/error';
 import { Button } from '../../shared/auth/Button';
 import { useActiveCompany } from '../../shared/auth/ActiveCompanyContext';
+import { NumberInput } from '../../shared/ui/NumberInput';
 import { Spinner } from '../../shared/ui/Spinner';
 import { useToast } from '../../shared/ui/Toast';
 import { useCashMovement, useCloseCash, useOpenCash, useOpenCashSession } from './api';
@@ -61,7 +62,7 @@ export function CashPage() {
       <section className="card">
         <header className="page-header"><div><h1>Apertura de caja</h1><p className="muted">Registra el fondo inicial para comenzar a cobrar en efectivo.</p></div></header>
         <form className="modal__body" onSubmit={handleOpen}>
-          <label className="field"><span>Fondo inicial</span><input className="input" type="number" min="0" step="0.01" value={openingAmount} onChange={(event) => setOpeningAmount(Number(event.target.value))} /></label>
+          <label className="field"><span>Fondo inicial</span><NumberInput value={openingAmount} onValueChange={(v) => setOpeningAmount(v ?? 0)} /></label>
           <Button type="submit" disabled={openCash.isPending}>{openCash.isPending ? 'Abriendo…' : 'Abrir turno'}</Button>
         </form>
       </section>
@@ -78,7 +79,7 @@ export function CashPage() {
         <h2>Movimiento manual</h2>
         <form className="grid-2" onSubmit={handleMovement}>
           <label className="field"><span>Tipo</span><select className="input" value={movementType} onChange={(event) => setMovementType(event.target.value as 'INGRESO' | 'EGRESO')}><option value="INGRESO">Ingreso</option><option value="EGRESO">Egreso</option></select></label>
-          <label className="field"><span>Importe</span><input className="input" type="number" min="0.01" step="0.01" value={movementAmount} onChange={(event) => setMovementAmount(Number(event.target.value))} /></label>
+          <label className="field"><span>Importe</span><NumberInput value={movementAmount} onValueChange={(v) => setMovementAmount(v ?? 0)} min={0.01} /></label>
           <label className="field"><span>Motivo</span><input className="input" value={reason} onChange={(event) => setReason(event.target.value)} required maxLength={255} /></label>
           <div><Button type="submit" disabled={movement.isPending || !reason.trim()}>Registrar movimiento</Button></div>
         </form>
@@ -86,7 +87,7 @@ export function CashPage() {
       <section className="card">
         <h2>Cierre de caja</h2>
         <form className="grid-2" onSubmit={handleClose}>
-          <label className="field"><span>Importe contado</span><input className="input" type="number" min="0" step="0.01" value={closingAmount} onChange={(event) => setClosingAmount(Number(event.target.value))} /></label>
+          <label className="field"><span>Importe contado</span><NumberInput value={closingAmount} onValueChange={(v) => setClosingAmount(v ?? 0)} /></label>
           <div><Button variant="danger" type="submit" disabled={closeCash.isPending}>{closeCash.isPending ? 'Cerrando…' : 'Cerrar turno'}</Button></div>
         </form>
       </section>

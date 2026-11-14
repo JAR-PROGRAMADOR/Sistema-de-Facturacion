@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ApiError } from '../../shared/api/error';
 import { Button } from '../../shared/auth/Button';
 import { useActiveCompany } from '../../shared/auth/ActiveCompanyContext';
+import { NumberInput } from '../../shared/ui/NumberInput';
 import { Spinner } from '../../shared/ui/Spinner';
 import { useToast } from '../../shared/ui/Toast';
 import { useProducts, type Product } from '../products/api';
@@ -102,8 +103,8 @@ export function PurchasesPage() {
           <div className="grid-2">
             <label className="field"><span>Método de pago (opcional)</span><select className="input" value={paymentMethodId} onChange={(event) => setPaymentMethodId(event.target.value)}><option value="">{paymentMethodsQuery.isLoading ? 'Cargando métodos de pago…' : 'Pendiente / no registrado'}</option>{paymentMethods.map((method) => <option key={method.id} value={method.id}>{method.name}</option>)}</select>{paymentMethodsQuery.isError && <span className="field__hint">No se pudieron cargar métodos de pago; puedes guardar la recepción sin seleccionar uno.</span>}</label>
             <label className="field"><span>Producto</span><select className="input" value={productId} onChange={(event) => selectProduct(event.target.value)}><option value="">Selecciona producto</option>{products.map((product) => <option key={product.id} value={product.id}>{product.sku} · {product.name}</option>)}</select></label>
-            <label className="field"><span>Cantidad</span><input className="input" type="number" min="0.001" step="0.001" value={quantity} onChange={(event) => setQuantity(Number(event.target.value))} /></label>
-            <label className="field"><span>Costo unitario</span><input className="input" type="number" min="0" step="0.01" value={unitCost} onChange={(event) => setUnitCost(Number(event.target.value))} /></label>
+            <label className="field"><span>Cantidad</span><NumberInput value={quantity} onValueChange={(v) => setQuantity(v ?? 0)} decimals={3} /></label>
+            <label className="field"><span>Costo unitario</span><NumberInput value={unitCost} onValueChange={(v) => setUnitCost(v ?? 0)} /></label>
             <div className="field"><span>&nbsp;</span><Button type="button" variant="ghost" onClick={addLine} disabled={!productId || quantity <= 0}>Agregar línea</Button></div>
           </div>
           <div className="table-wrap"><table className="table">

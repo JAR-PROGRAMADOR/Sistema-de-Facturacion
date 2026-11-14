@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '../../shared/auth/Button';
 import { Field } from '../../shared/ui/Field';
 import { Input } from '../../shared/ui/Input';
+import { NumberInput } from '../../shared/ui/NumberInput';
 import { Spinner } from '../../shared/ui/Spinner';
 import { useToast } from '../../shared/ui/Toast';
 import { ApiError } from '../../shared/api/error';
@@ -18,13 +19,13 @@ export function TaxRatesSection({ companyId, isPlatform }: Props) {
 
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState('');
-  const [newRate, setNewRate] = useState('');
+  const [newRate, setNewRate] = useState<number | undefined>(undefined);
 
   const createMutation = useCreateTaxRate(companyId, isPlatform);
 
   const handleCreate = async () => {
-    const rate = Number(newRate);
-    if (!newName.trim() || !Number.isFinite(rate) || rate < 0 || rate > 100) {
+    const rate = newRate;
+    if (!newName.trim() || rate === undefined || !Number.isFinite(rate) || rate < 0 || rate > 100) {
       push('error', 'Nombre y tasa (0–100) son obligatorios.');
       return;
     }
@@ -33,7 +34,7 @@ export function TaxRatesSection({ companyId, isPlatform }: Props) {
       push('success', 'Tasa creada.');
       setAdding(false);
       setNewName('');
-      setNewRate('');
+      setNewRate(undefined);
     } catch (err) {
       push('error', err instanceof ApiError ? err.message : 'No fue posible crear.');
     }
@@ -61,14 +62,13 @@ export function TaxRatesSection({ companyId, isPlatform }: Props) {
             <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="IVA 16%" />
           </Field>
           <Field label="Tasa (%) *">
-            <Input
-              type="number"
-              step="0.01"
-              min="0"
-              max="100"
+            <NumberInput
               value={newRate}
-              onChange={(e) => setNewRate(e.target.value)}
+              onValueChange={setNewRate}
+              min={0}
+              max={100}
               placeholder="16"
+              allowEmpty
             />
           </Field>
           <div className="row-actions" style={{ gridColumn: '1 / -1' }}>

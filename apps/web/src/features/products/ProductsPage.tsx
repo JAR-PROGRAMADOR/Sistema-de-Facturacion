@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useActiveCompany } from '../../shared/auth/ActiveCompanyContext';
+import { NumberInput } from '../../shared/ui/NumberInput';
 import { useCreateProduct, useProducts, type ProductInput } from './api';
 import { useCategories } from './categories-api';
 
@@ -64,19 +65,19 @@ export function ProductsPage() {
           </label>
           <label>
             Precio
-            <input type="number" min="0" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} />
+            <NumberInput value={form.price} onValueChange={(v) => setForm({ ...form, price: v ?? 0 })} />
           </label>
           <label>
             Costo
-            <input type="number" min="0" step="0.01" value={form.cost ?? 0} onChange={(e) => setForm({ ...form, cost: Number(e.target.value) })} />
+            <NumberInput value={form.cost} onValueChange={(v) => setForm({ ...form, cost: v })} />
           </label>
           <label>
             Stock mínimo
-            <input type="number" min="0" step="1" value={form.minStock ?? 0} onChange={(e) => setForm({ ...form, minStock: Number(e.target.value) })} />
+            <NumberInput value={form.minStock} onValueChange={(v) => setForm({ ...form, minStock: v })} decimals={0} />
           </label>
           <label>
             Stock inicial
-            <input type="number" min="0" step="1" value={form.initialStock ?? 0} onChange={(e) => setForm({ ...form, initialStock: Number(e.target.value) })} />
+            <NumberInput value={form.initialStock} onValueChange={(v) => setForm({ ...form, initialStock: v })} decimals={0} />
           </label>
           <label className="checkbox-row">
             <input type="checkbox" checked={form.trackStock ?? true} onChange={(e) => setForm({ ...form, trackStock: e.target.checked })} />
