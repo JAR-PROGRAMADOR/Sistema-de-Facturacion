@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../shared/auth/AuthProvider';
@@ -43,6 +44,42 @@ export function Layout() {
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     isActive ? 'sidebar__link sidebar__link--active' : 'sidebar__link';
 
+  // Menú lateral organizado en grupos plegables.
+  const [closedGroups, setClosedGroups] = useState<Record<string, boolean>>({});
+  const toggleGroup = (label: string) =>
+    setClosedGroups((prev) => ({ ...prev, [label]: !prev[label] }));
+  const navGroups: Array<{ label: string; links: Array<{ to: string; label: string }> }> = [
+    {
+      label: 'Ventas',
+      links: [
+        { to: '/ventas', label: 'Ventas' },
+        { to: '/facturas', label: 'Facturas' },
+        { to: '/caja', label: 'Caja' },
+        { to: '/clientes', label: 'Clientes' },
+      ],
+    },
+    {
+      label: 'Inventario',
+      links: [
+        { to: '/productos', label: 'Productos' },
+        { to: '/categorias', label: 'Categorías' },
+        { to: '/inventario', label: 'Inventario' },
+        { to: '/proveedores', label: 'Proveedores' },
+        { to: '/compras', label: 'Compras' },
+      ],
+    },
+    {
+      label: 'Administración',
+      links: [
+        { to: '/usuarios', label: t('nav.users', 'Usuarios') },
+        { to: '/roles', label: t('nav.roles', 'Roles') },
+        { to: '/reportes', label: 'Reportes' },
+        { to: '/auditoria', label: 'Auditoría' },
+        { to: '/configuracion', label: 'Configuración' },
+      ],
+    },
+  ];
+
   return (
     <div className={`app-shell${isDashboard ? ' app-shell--dashboard' : ''}`}>
       <aside className="sidebar">
@@ -54,57 +91,50 @@ export function Layout() {
             Inicio
           </NavLink>
           {isPlatform && (
-            <>
-              <NavLink to="/empresas" className={linkClass}>
-                {t('nav.companies', 'Empresas')}
-              </NavLink>
-              <NavLink to="/licencias" className={linkClass}>
-                Licencias
-              </NavLink>
-            </>
+            <section className="sidebar__group">
+              <button
+                type="button"
+                className="sidebar__group-toggle"
+                onClick={() => toggleGroup('Plataforma')}
+                aria-expanded={!closedGroups['Plataforma']}
+              >
+                <span>Plataforma</span>
+                <span aria-hidden="true">{closedGroups['Plataforma'] ? '▸' : '▾'}</span>
+              </button>
+              {!closedGroups['Plataforma'] && (
+                <div className="sidebar__group-links">
+                  <NavLink to="/empresas" className={linkClass}>
+                    {t('nav.companies', 'Empresas')}
+                  </NavLink>
+                  <NavLink to="/licencias" className={linkClass}>
+                    Licencias
+                  </NavLink>
+                </div>
+              )}
+            </section>
           )}
-          <NavLink to="/roles" className={linkClass}>
-            {t('nav.roles', 'Roles')}
-          </NavLink>
-          <NavLink to="/usuarios" className={linkClass}>
-            {t('nav.users', 'Usuarios')}
-          </NavLink>
-          <NavLink to="/productos" className={linkClass}>
-            Productos
-          </NavLink>
-          <NavLink to="/categorias" className={linkClass}>
-            Categorías
-          </NavLink>
-          <NavLink to="/inventario" className={linkClass}>
-            Inventario
-          </NavLink>
-          <NavLink to="/clientes" className={linkClass}>
-            Clientes
-          </NavLink>
-          <NavLink to="/proveedores" className={linkClass}>
-            Proveedores
-          </NavLink>
-          <NavLink to="/ventas" className={linkClass}>
-            Ventas
-          </NavLink>
-          <NavLink to="/caja" className={linkClass}>
-            Caja
-          </NavLink>
-          <NavLink to="/facturas" className={linkClass}>
-            Facturas
-          </NavLink>
-          <NavLink to="/reportes" className={linkClass}>
-            Reportes
-          </NavLink>
-          <NavLink to="/auditoria" className={linkClass}>
-            Auditoría
-          </NavLink>
-          <NavLink to="/compras" className={linkClass}>
-            Compras
-          </NavLink>
-        <NavLink to="/configuracion" className={linkClass}>
-            Configuración
-        </NavLink>
+          {navGroups.map((group) => (
+            <section key={group.label} className="sidebar__group">
+              <button
+                type="button"
+                className="sidebar__group-toggle"
+                onClick={() => toggleGroup(group.label)}
+                aria-expanded={!closedGroups[group.label]}
+              >
+                <span>{group.label}</span>
+                <span aria-hidden="true">{closedGroups[group.label] ? '▸' : '▾'}</span>
+              </button>
+              {!closedGroups[group.label] && (
+                <div className="sidebar__group-links">
+                  {group.links.map((link) => (
+                    <NavLink key={link.to} to={link.to} className={linkClass}>
+                      {link.label}
+                    </NavLink>
+                  ))}
+                </div>
+              )}
+            </section>
+          ))}
         </nav>
       </aside>
 

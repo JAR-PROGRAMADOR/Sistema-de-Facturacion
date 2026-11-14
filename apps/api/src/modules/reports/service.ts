@@ -24,7 +24,9 @@ export async function getSalesSummary(
   discountTotal: number;
   taxTotal: number;
   total: number;
-  daily: Array<{ day: string; salesCount: number; total: number }>;
+  totalCost: number;
+  grossProfit: number;
+  daily: Array<{ day: string; salesCount: number; total: number; cost: number }>;
 }> {
   const period = range(query);
   return withContext(ctx.pool, { companyId, platform: true }, async (c) => {
@@ -44,16 +46,33 @@ export async function getSalesSummary(
         WHERE company_id = $1 AND status = 'COMPLETADA' AND sold_at >= $2 AND sold_at < $3`,
       [companyId, period.from, period.to],
     );
-    const daily = await c.query<{ day: string; sales_count: number; total: string }>(
-      `SELECT to_char(sold_at::date, 'YYYY-MM-DD') AS day,
+    // Costo de lo vendido por día (cantidad × costo del producto), para la
+    // segunda línea de la gráfica (Ingresos vs Costos) y la utilidad bruta.
+    const daily = await c.query<{ day: string; sales_count: number; total: string; cost: string }>(
+      `SELECT to_char(s.sold_at::date, 'YYYY-MM-DD') AS day,
               count(*)::int AS sales_count,
-              sum(total)::text AS total
-         FROM sales
-        WHERE company_id = $1 AND status = 'COMPLETADA' AND sold_at >= $2 AND sold_at < $3
-        GROUP BY sold_at::date ORDER BY sold_at::date`,
+              sum(s.total)::text AS total,
+              COALESCE(sum(sc.cost_total), 0)::text AS cost
+         FROM sales s
+         LEFT JOIN (
+           SELECT si.sale_id, sum(si.quantity * p.cost)::text AS cost_total
+             FROM sale_items si
+             JOIN products p ON p.company_id = si.company_id AND p.id = si.product_id
+            WHERE si.company_id = $1
+            GROUP BY si.sale_id
+         ) sc ON sc.sale_id = s.id
+        WHERE s.company_id = $1 AND s.status = 'COMPLETADA' AND s.sold_at >= $2 AND s.sold_at < $3
+        GROUP BY s.sold_at::date ORDER BY s.sold_at::date`,
       [companyId, period.from, period.to],
     );
     const row = totals.rows[0]!;
+    const dailyRows = daily.rows.map((entry) => ({
+      day: entry.day,
+      salesCount: entry.sales_count,
+      total: Number(entry.total),
+      cost: Number(entry.cost),
+    }));
+    const totalCost = dailyRows.reduce((acc, entry) => acc + entry.cost, 0);
     return {
       from: period.from,
       to: period.to,
@@ -62,7 +81,9 @@ export async function getSalesSummary(
       discountTotal: Number(row.discount_total),
       taxTotal: Number(row.tax_total),
       total: Number(row.total),
-      daily: daily.rows.map((entry) => ({ day: entry.day, salesCount: entry.sales_count, total: Number(entry.total) })),
+      totalCost,
+      grossProfit: Number(row.total) - totalCost,
+      daily: dailyRows,
     };
   });
 }
