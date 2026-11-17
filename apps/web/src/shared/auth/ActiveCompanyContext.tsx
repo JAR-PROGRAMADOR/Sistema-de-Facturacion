@@ -45,8 +45,12 @@ export function ActiveCompanyProvider({ children }: { children: ReactNode }) {
   const companies = companiesQuery.data?.items ?? [];
 
   // Asegura que haya una empresa seleccionada cuando el usuario es platform.
+  // No tocar la selección mientras la lista todavía está cargando (o falló):
+  // al recargar, `companies` empieza vacía y sin esta guarda se borraría la
+  // empresa guardada y se saltaría a la primera de la lista.
   useEffect(() => {
     if (!isPlatform) return;
+    if (companiesQuery.isLoading || companiesQuery.isError) return;
     if (selected && companies.some((c: Company) => c.id === selected)) return;
     const first = companies[0]?.id ?? null;
     setSelected(first);
