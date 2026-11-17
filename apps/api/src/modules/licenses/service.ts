@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import type { Pool, PoolClient } from 'pg';
 import { withContext } from '../../database/client.js';
 import { AppError } from '../../shared/errors.js';
@@ -95,6 +96,48 @@ export async function createRegistrationLicense(
     }),
   );
   return { id: row.id, key, durationSeconds: input.durationSeconds, maxUsers: input.maxUsers };
+}
+
+// Duración de las licencias que se activan solas al registrarse sin código.
+export const TRIAL_LICENSE_DURATION_SECONDS = 365 * 24 * 60 * 60;
+
+/**
+ * TEMPORAL (2026-11-16): activa sin código la licencia de empresa y la del
+ * usuario administrador al registrarse, para probar el software sin generar
+ * códigos. Las licencias nacen ACTIVA por 365 días. No hay código en claro:
+ * se guarda el hash de un UUID aleatorio que nadie conoce, así que no se
+ * pueden canjear por código. Para volver a exigir el código, quitar la
+ * llamada a esta función en createCompany (companies/service.ts).
+ */
+export async function activateTrialLicenses(
+  c: PoolClient,
+  ctx: { companyId: string; userId: string; durationSeconds?: number },
+): Promise<{ companyLicenseId: string; userLicenseId: string }> {
+  const durationSeconds = ctx.durationSeconds ?? TRIAL_LICENSE_DURATION_SECONDS;
+  const companyRow = await repo.insertActiveLicense(c, {
+    companyId: ctx.companyId,
+    keyHash: hashToken(randomUUID()),
+    durationSeconds,
+    maxUsers: 10,
+    createdBy: ctx.userId,
+  });
+  const userRow = await repo.insertActiveUserLicense(c, {
+    companyId: ctx.companyId,
+    userId: ctx.userId,
+    keyHash: hashToken(randomUUID()),
+    durationSeconds,
+    createdBy: ctx.userId,
+  });
+  await c.query(
+    `INSERT INTO audit_logs (company_id, user_id, action, metadata)
+     VALUES ($1, $2, 'licenses.trial_activated', $3)`,
+    [
+      ctx.companyId,
+      ctx.userId,
+      JSON.stringify({ companyLicenseId: companyRow.id, userLicenseId: userRow.id, durationSeconds }),
+    ],
+  );
+  return { companyLicenseId: companyRow.id, userLicenseId: userRow.id };
 }
 
 export async function redeemRegistrationLicenseOnClient(

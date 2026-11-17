@@ -85,6 +85,16 @@ hash y su vigencia empieza al registrarse.
 Los códigos tradicionales de empresa y usuario siguen disponibles para renovaciones y para
 administrar licencias de cuentas ya existentes.
 
+> **TEMPORAL (2026-11-16): registro sin código.** Mientras se prueba el software sin
+> generar códigos, registrarse sin código de registro activa solas la licencia de empresa
+> y la del usuario administrador, por 365 días y con cupo de 10 usuarios
+> (`activateTrialLicenses` en `apps/api/src/modules/licenses/service.ts`, llamado desde
+> `createCompany` solo cuando el registro lo pide). Las licencias nacen `ACTIVA` con sus
+> fechas; no hay código en claro (se guarda el hash de un UUID aleatorio). El registro con
+> código sigue funcionando igual. Para volver a exigir el código, quitar ese bloque: sin
+> él, registrarse sin código deja las licencias pendientes y LicenseGate vuelve a pedir el
+> código.
+
 ## Por qué el canje necesita una función SQL especial
 Las políticas de seguridad por fila (RLS) de `licenses` y `user_licenses` solo dejan
 `UPDATE` a la plataforma — a propósito, para que una empresa nunca pueda cambiarle el

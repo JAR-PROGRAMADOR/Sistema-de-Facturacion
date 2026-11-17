@@ -153,6 +153,8 @@ describe.skipIf(!enabled)('Autenticación (FASE 3a)', () => {
     expect(registered.statusCode).toBe(201);
     registrationCompanyId = registered.json().data.company.id;
     expect(registered.json().data.message).toContain('licencias');
+    // TEMPORAL (2026-11-16): registrarse sin código activa las licencias solas.
+    expect(registered.json().data.licenseActivated).toBe(true);
 
     const user = await admin.query<{ id: string }>(
       `SELECT id FROM users WHERE lower(email) = lower($1)`,
@@ -166,6 +168,20 @@ describe.skipIf(!enabled)('Autenticación (FASE 3a)', () => {
       [registrationUserId],
     );
     expect(membership.rows).toEqual([{ company_id: registrationCompanyId, status: 'ACTIVO' }]);
+
+    const licenses = await admin.query<{ status: string; expires_at: string }>(
+      `SELECT status, expires_at FROM licenses WHERE company_id = $1`,
+      [registrationCompanyId],
+    );
+    expect(licenses.rows).toHaveLength(1);
+    expect(licenses.rows[0]?.status).toBe('ACTIVA');
+    expect(new Date(licenses.rows[0]!.expires_at).getTime()).toBeGreaterThan(Date.now());
+
+    const userLicenses = await admin.query<{ status: string }>(
+      `SELECT status FROM user_licenses WHERE company_id = $1 AND user_id = $2`,
+      [registrationCompanyId, registrationUserId],
+    );
+    expect(userLicenses.rows).toEqual([{ status: 'ACTIVA' }]);
 
     const login = await app.inject({
       method: 'POST',

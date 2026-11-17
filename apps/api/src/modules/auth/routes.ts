@@ -73,12 +73,16 @@ export async function authRoutes(app: FastifyInstance, opts: { env: Env; auth: A
       requestMeta(req),
       input.password,
       input.licenseKey,
+      // TEMPORAL (2026-11-16): sin código, las licencias se activan solas
+      // para probar sin generar códigos. Ver activateTrialLicenses.
+      { activateTrialLicenses: !input.licenseKey },
     );
+    const licenseActivated = Boolean(input.licenseKey) || company.trialLicensesActivated === true;
     reply.status(201).send({
       data: {
         company: { id: company.id, name: company.name },
-        licenseActivated: Boolean(input.licenseKey),
-        message: input.licenseKey
+        licenseActivated,
+        message: licenseActivated
           ? 'Cuenta creada. La licencia de empresa y la de usuario quedaron activadas.'
           : 'Cuenta creada. Para empezar a usar el sistema, solicita y activa las licencias de empresa y usuario.',
       },
