@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { List } from '@phosphor-icons/react';
 import { useAuth } from '../shared/auth/AuthProvider';
 import { CompanyPicker } from '../shared/ui/CompanyPicker';
 import { Logo } from '../shared/ui/Logo';
@@ -83,8 +84,15 @@ export function Layout() {
     },
   ];
 
+  // En móvil el menú lateral es un cajón deslizable: se abre con el botón
+  // de hamburguesa del encabezado y se cierra al navegar o al tocar el fondo.
+  const [navOpen, setNavOpen] = useState(false);
+  useEffect(() => {
+    setNavOpen(false);
+  }, [location.pathname]);
+
   return (
-    <div className={`app-shell${isDashboard ? ' app-shell--dashboard' : ''}`}>
+    <div className={`app-shell${isDashboard ? ' app-shell--dashboard' : ''}${navOpen ? ' app-shell--nav-open' : ''}`}>
       <aside className="sidebar">
         <div className="sidebar__brand">
           <Logo />
@@ -148,10 +156,27 @@ export function Layout() {
           ))}
         </nav>
       </aside>
+      {navOpen && (
+        <button
+          type="button"
+          className="sidebar__backdrop"
+          aria-label={t('nav.closeMenu', 'Cerrar menú')}
+          onClick={() => setNavOpen(false)}
+        />
+      )}
 
       <div className="app-main">
         <header className="app-header">
           <div className="app-header__meta">
+            <button
+              type="button"
+              className="app-header__menu"
+              onClick={() => setNavOpen((v) => !v)}
+              aria-expanded={navOpen}
+              aria-label={t('nav.openMenu', 'Abrir menú')}
+            >
+              <List size={22} weight="bold" aria-hidden="true" />
+            </button>
             <span className="app-header__title">{pageTitle}</span>
             {isPlatform && <span className="badge">{t('auth.platform', 'Plataforma')}</span>}
           </div>

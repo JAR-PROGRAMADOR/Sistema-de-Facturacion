@@ -58,6 +58,9 @@ export function AuthLayout({ children }: { children: ReactNode }) {
       <div className="auth-form">
         <div className="auth-brand">
           <Logo size={44} />
+          <p className="auth-brand__title">
+            {t('auth.heroTitle', 'Factura, vende y cobra sin enredos.')}
+          </p>
         </div>
         {children}
       </div>
