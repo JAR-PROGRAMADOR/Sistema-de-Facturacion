@@ -1837,9 +1837,9 @@ table tbody tr:hover, .table tbody tr:hover { background: #171e27; }
   display: flex;
   align-items: center;
   gap: 10px;
-  flex: 1;
+  flex: none;
+  width: 340px;
   min-width: 240px;
-  max-width: 340px;
   height: 44px;
   padding: 0 8px 0 16px;
   border: 1px solid #2a323d;
