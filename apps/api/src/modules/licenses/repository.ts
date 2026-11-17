@@ -54,10 +54,15 @@ export async function insertActiveLicense(
   p: { companyId: string; keyHash: string; durationSeconds: number; maxUsers: number; createdBy: string | null },
 ): Promise<LicenseRow> {
   const r = await c.query<LicenseRow>(
+    // La duración se pasa DOS veces como parámetros distintos ($3 y $5):
+    // PostgreSQL no puede inferir un único tipo para un parámetro usado a
+    // la vez como duration_seconds (bigint) y como secs de make_interval
+    // (double precision) y rechaza la consulta con 42P08. Con parámetros
+    // separados cada uno se infiere sin ambigüedad.
     `INSERT INTO licenses (company_id, key_hash, status, duration_seconds, max_users, starts_at, expires_at, created_by)
-     VALUES ($1, $2, 'ACTIVA', $3, $4, now(), now() + make_interval(secs => $3), $5)
+     VALUES ($1, $2, 'ACTIVA', $3, $4, now(), now() + make_interval(secs => $5), $6)
      RETURNING id, company_id, status, duration_seconds, max_users, starts_at, expires_at, created_at`,
-    [p.companyId, p.keyHash, p.durationSeconds, p.maxUsers, p.createdBy],
+    [p.companyId, p.keyHash, p.durationSeconds, p.maxUsers, p.durationSeconds, p.createdBy],
   );
   return r.rows[0]!;
 }
@@ -120,10 +125,13 @@ export async function insertActiveUserLicense(
   p: { companyId: string; userId: string; keyHash: string; durationSeconds: number; createdBy: string | null },
 ): Promise<UserLicenseRow> {
   const r = await c.query<UserLicenseRow>(
+    // Igual que insertActiveLicense: la duración va dos veces ($4 y $5)
+    // para que PostgreSQL no tenga que inferir un tipo para un parámetro
+    // usado como bigint y como double precision a la vez (error 42P08).
     `INSERT INTO user_licenses (company_id, user_id, key_hash, status, duration_seconds, starts_at, expires_at, created_by)
-     VALUES ($1, $2, $3, 'ACTIVA', $4, now(), now() + make_interval(secs => $4), $5)
+     VALUES ($1, $2, $3, 'ACTIVA', $4, now(), now() + make_interval(secs => $5), $6)
      RETURNING id, company_id, user_id, status, duration_seconds, starts_at, expires_at, created_at`,
-    [p.companyId, p.userId, p.keyHash, p.durationSeconds, p.createdBy],
+    [p.companyId, p.userId, p.keyHash, p.durationSeconds, p.durationSeconds, p.createdBy],
   );
   return r.rows[0]!;
 }
