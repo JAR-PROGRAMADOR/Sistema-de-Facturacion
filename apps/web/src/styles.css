@@ -1851,15 +1851,20 @@ table tbody tr:hover, .table tbody tr:hover { background: #171e27; }
 }
 .dashboard__search:hover { border-color: #3a4552; }
 .dashboard__search svg { flex: none; }
+/* El buscador NO es un campo de formulario: las reglas globales
+   `input:not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button])`
+   tienen especificidad 0,4,1 (cuatro :not) y le impondrían borde, radio,
+   padding, fondo y sombra de campo, dibujando una segunda caja dentro de
+   la píldora. El !important es para ganarles. */
 .dashboard__search input {
   flex: 1;
   min-width: 0;
-  min-height: 40px;
-  padding: 0;
-  border: 0;
+  min-height: 40px !important;
+  padding: 0 !important;
+  border: 0 !important;
   color: #e2e9f2;
-  background: transparent;
-  box-shadow: none;
+  background: transparent !important;
+  box-shadow: none !important;
   font-size: 1rem;
 }
 .dashboard__search input::placeholder { color: #718094; opacity: 1; }
@@ -1922,7 +1927,13 @@ table tbody tr:hover, .table tbody tr:hover { background: #171e27; }
 }
 @media (max-width: 560px) {
   .dashboard__welcome-actions { width: 100%; }
-  .dashboard__search { flex: 1; }
+  /* En el teléfono el buscador ocupa toda la fila: con solo `flex: 1` el
+     ancho fijo de 340px seguía mandando y el campo se cortaba. */
+  .dashboard__search { flex: 1 1 auto; width: 100%; min-width: 0; }
+  /* Las 4 tarjetas en 2 columnas no caben: las etiquetas se parten y el
+     periodo se corta. Una columna a todo lo ancho. */
+  .dashboard__metrics { grid-template-columns: 1fr; gap: 10px; }
+  .dashboard__metric { padding: 16px 18px; }
 }
 
 /* --- Menú lateral con grupos plegables --- */
