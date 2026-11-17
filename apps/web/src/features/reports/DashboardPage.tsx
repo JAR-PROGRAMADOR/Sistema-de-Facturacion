@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MagnifyingGlass, X } from '@phosphor-icons/react';
+import { CalendarBlank, MagnifyingGlass, Plus, X } from '@phosphor-icons/react';
 import {
   Area,
   AreaChart,
@@ -167,8 +167,13 @@ export function DashboardPage() {
               </button>
             )}
           </div>
-          <span className="dashboard__date">{dateFormatter.format(new Date())}</span>
-          <Link className="dashboard__action" to="/ventas"><span aria-hidden="true">＋</span> Nueva venta</Link>
+          <span className="dashboard__date">
+            <CalendarBlank size={16} weight="regular" aria-hidden="true" />
+            {dateFormatter.format(new Date())}
+          </span>
+          <Link className="dashboard__action" to="/ventas">
+            <Plus size={18} weight="bold" aria-hidden="true" /> Nueva venta
+          </Link>
         </div>
       </section>
 
