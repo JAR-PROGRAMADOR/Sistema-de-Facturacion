@@ -1122,7 +1122,11 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--color-primary)
 .app-shell--dashboard .dashboard__metric-label { color: #a4afbd; font-size: .86rem; }
 .app-shell--dashboard .dashboard__metric strong {
   color: #f2f5fa;
-  font-size: clamp(1.65rem, 2.4vw, 2.15rem);
+  /* La cifra no se parte a mitad de número: la regla base trae
+     `overflow-wrap: anywhere` y con la barra lateral puesta un total de
+     9 dígitos se partía en dos líneas ("93.761.290,0" / "0"). */
+  overflow-wrap: normal;
+  font-size: clamp(1.5rem, 1.9vw, 2rem);
   letter-spacing: -.045em;
 }
 .app-shell--dashboard .dashboard__metric-note { color: #737f8f; font-size: .78rem; }
