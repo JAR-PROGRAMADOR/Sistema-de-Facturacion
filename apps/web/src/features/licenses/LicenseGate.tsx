@@ -5,6 +5,7 @@ import { Button } from '../../shared/auth/Button';
 import { useAuth } from '../../shared/auth/AuthProvider';
 import { useActiveCompany } from '../../shared/auth/ActiveCompanyContext';
 import { Spinner } from '../../shared/ui/Spinner';
+import { AuthLayout } from '../../shared/ui/AuthLayout';
 import { useToast } from '../../shared/ui/Toast';
 import { useActivateLicense, useLicenseStatus } from './api';
 
@@ -42,7 +43,7 @@ export function LicenseGate() {
   const signOutAndGoToLogin = () => void signOut().then(() => navigate('/login', { replace: true }));
 
   return (
-    <main className="auth-shell">
+    <AuthLayout>
       <section className="card auth-card">
         <h1>Renovar licencia</h1>
         <p>El acceso está bloqueado hasta que estén activas las licencias requeridas.</p>
@@ -71,6 +72,6 @@ export function LicenseGate() {
         )}
         <Button variant="ghost" onClick={signOutAndGoToLogin}>Cerrar sesión</Button>
       </section>
-    </main>
+    </AuthLayout>
   );
 }

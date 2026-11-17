@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { Link } from 'react-router-dom';
 import { Field } from '../../shared/ui/Field';
 import { Input } from '../../shared/ui/Input';
+import { AuthLayout } from '../../shared/ui/AuthLayout';
 import { useToast } from '../../shared/ui/Toast';
 
 const schema = z.object({ email: z.string().trim().email('Correo inválido') });
@@ -39,7 +40,7 @@ export function ForgotPasswordPage() {
   });
 
   return (
-    <main className="auth-shell">
+    <AuthLayout>
       <form className="card auth-card" onSubmit={onSubmit} noValidate>
         <h1>Recuperar contraseña</h1>
 
@@ -63,6 +64,6 @@ export function ForgotPasswordPage() {
           <Link to="/login">Volver al inicio de sesión</Link>
         </p>
       </form>
-    </main>
+    </AuthLayout>
   );
 }

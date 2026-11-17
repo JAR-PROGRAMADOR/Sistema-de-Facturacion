@@ -8,7 +8,7 @@ import { ApiError } from '../../shared/api/error';
 import { useToast } from '../../shared/ui/Toast';
 import { Field } from '../../shared/ui/Field';
 import { Input } from '../../shared/ui/Input';
-import { Logo } from '../../shared/ui/Logo';
+import { AuthLayout } from '../../shared/ui/AuthLayout';
 
 const schema = z.object({
   email: z.string().trim().email('Correo inválido'),
@@ -51,11 +51,8 @@ export function LoginPage() {
   });
 
   return (
-    <main className="auth-shell">
+    <AuthLayout>
       <form className="card auth-card" onSubmit={onSubmit} noValidate>
-        <div className="auth-brand">
-          <Logo size={44} />
-        </div>
         <h1>Iniciar sesión</h1>
 
         <Field label="Correo" error={errors.email?.message}>
@@ -93,6 +90,6 @@ export function LoginPage() {
           ¿Eres nuevo? <Link to="/registro">Crear cuenta</Link>
         </p>
       </form>
-    </main>
+    </AuthLayout>
   );
 }
