@@ -5,6 +5,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { confirmPasswordReset } from './api';
 import { Field } from '../../shared/ui/Field';
 import { Input } from '../../shared/ui/Input';
+import { AuthLayout } from '../../shared/ui/AuthLayout';
 import { useToast } from '../../shared/ui/Toast';
 
 const schema = z
@@ -52,7 +53,7 @@ export function ResetPasswordPage() {
   });
 
   return (
-    <main className="auth-shell">
+    <AuthLayout>
       <form className="card auth-card" onSubmit={onSubmit} noValidate>
         <h1>Nueva contraseña</h1>
 
@@ -83,6 +84,6 @@ export function ResetPasswordPage() {
           <Link to="/login">Volver al inicio de sesión</Link>
         </p>
       </form>
-    </main>
+    </AuthLayout>
   );
 }
