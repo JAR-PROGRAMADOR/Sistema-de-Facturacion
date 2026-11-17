@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { MagnifyingGlass, X } from '@phosphor-icons/react';
 import {
   Area,
   AreaChart,
@@ -146,16 +147,26 @@ export function DashboardPage() {
           <p>Ventas, actividad e inventario en un solo lugar.</p>
         </div>
         <div className="dashboard__welcome-actions">
-          <label className="dashboard__search">
-            <span aria-hidden="true">⌕</span>
+          <div className="dashboard__search" role="search">
+            <MagnifyingGlass size={18} weight="regular" aria-hidden="true" />
             <input
               type="search"
               value={stockQuery}
               onChange={(event) => setStockQuery(event.target.value)}
-              placeholder="Buscar en inventario…"
+              placeholder="Buscar producto en inventario…"
               aria-label="Buscar en inventario"
             />
-          </label>
+            {stockQuery && (
+              <button
+                type="button"
+                className="dashboard__search-clear"
+                onClick={() => setStockQuery('')}
+                aria-label="Limpiar búsqueda"
+              >
+                <X size={14} weight="bold" aria-hidden="true" />
+              </button>
+            )}
+          </div>
           <span className="dashboard__date">{dateFormatter.format(new Date())}</span>
           <Link className="dashboard__action" to="/ventas"><span aria-hidden="true">＋</span> Nueva venta</Link>
         </div>

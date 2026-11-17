@@ -45,6 +45,23 @@ export async function insertLicense(
   return r.rows[0]!;
 }
 
+/**
+ * Inserta una licencia de empresa ya ACTIVA (con fechas), sin código que
+ * canjear. La usa la activación automática de prueba al registrarse.
+ */
+export async function insertActiveLicense(
+  c: PoolClient,
+  p: { companyId: string; keyHash: string; durationSeconds: number; maxUsers: number; createdBy: string | null },
+): Promise<LicenseRow> {
+  const r = await c.query<LicenseRow>(
+    `INSERT INTO licenses (company_id, key_hash, status, duration_seconds, max_users, starts_at, expires_at, created_by)
+     VALUES ($1, $2, 'ACTIVA', $3, $4, now(), now() + make_interval(secs => $3), $5)
+     RETURNING id, company_id, status, duration_seconds, max_users, starts_at, expires_at, created_at`,
+    [p.companyId, p.keyHash, p.durationSeconds, p.maxUsers, p.createdBy],
+  );
+  return r.rows[0]!;
+}
+
 export async function listLicenses(c: PoolClient, companyId: string): Promise<LicenseRow[]> {
   const r = await c.query<LicenseRow>(
     `SELECT id, company_id, status, duration_seconds, max_users, starts_at, expires_at, created_at
@@ -88,6 +105,23 @@ export async function insertUserLicense(
   const r = await c.query<UserLicenseRow>(
     `INSERT INTO user_licenses (company_id, user_id, key_hash, duration_seconds, created_by)
      VALUES ($1, $2, $3, $4, $5)
+     RETURNING id, company_id, user_id, status, duration_seconds, starts_at, expires_at, created_at`,
+    [p.companyId, p.userId, p.keyHash, p.durationSeconds, p.createdBy],
+  );
+  return r.rows[0]!;
+}
+
+/**
+ * Inserta una licencia de usuario ya ACTIVA (con fechas), sin código que
+ * canjear. La usa la activación automática de prueba al registrarse.
+ */
+export async function insertActiveUserLicense(
+  c: PoolClient,
+  p: { companyId: string; userId: string; keyHash: string; durationSeconds: number; createdBy: string | null },
+): Promise<UserLicenseRow> {
+  const r = await c.query<UserLicenseRow>(
+    `INSERT INTO user_licenses (company_id, user_id, key_hash, status, duration_seconds, starts_at, expires_at, created_by)
+     VALUES ($1, $2, $3, 'ACTIVA', $4, now(), now() + make_interval(secs => $4), $5)
      RETURNING id, company_id, user_id, status, duration_seconds, starts_at, expires_at, created_at`,
     [p.companyId, p.userId, p.keyHash, p.durationSeconds, p.createdBy],
   );

@@ -5,7 +5,7 @@ import { AppError } from '../../shared/errors.js';
 import { hashPassword } from '../auth/password.js';
 import { insertAudit } from '../auth/repository.js';
 import type { AuthContext } from '../auth/service.js';
-import { redeemRegistrationLicenseOnClient } from '../licenses/service.js';
+import { activateTrialLicenses, redeemRegistrationLicenseOnClient } from '../licenses/service.js';
 
 import * as repo from './repository.js';
 import type { CreateCompanyInput, UpdateCompanyInput } from './schema.js';
@@ -24,7 +24,8 @@ export async function createCompany(
   meta: RequestMeta,
   adminPassword?: string,
   registrationLicenseKey?: string,
-): Promise<repo.CompanyRow & { adminRoleId?: string; vendorRoleId?: string; adminUserCreated?: boolean; adminUserId?: string | null }> {
+  opts?: { activateTrialLicenses?: boolean },
+): Promise<repo.CompanyRow & { adminRoleId?: string; vendorRoleId?: string; adminUserCreated?: boolean; adminUserId?: string | null; trialLicensesActivated?: boolean }> {
   const id = randomUUID();
 
   // ✅ Un solo withContext con companyId desde el arranque.
@@ -78,6 +79,18 @@ export async function createCompany(
       await redeemRegistrationLicenseOnClient(c, { companyId: id, userId: adminUserId }, registrationLicenseKey);
     }
 
+    // TEMPORAL (2026-11-16): registro sin código = licencias activadas solas
+    // por 365 días, para probar el software sin generar códigos. Solo se
+    // activa cuando el registro lo pide (opts.activateTrialLicenses); el
+    // resto de llamadas a createCompany no se ven afectadas. Para volver a
+    // exigir el código, quitar este bloque: sin él, registrarse sin código
+    // deja las licencias pendientes y LicenseGate vuelve a pedir el código.
+    let trialLicensesActivated = false;
+    if (!registrationLicenseKey && opts?.activateTrialLicenses && adminUserId) {
+      await activateTrialLicenses(c, { companyId: id, userId: adminUserId });
+      trialLicensesActivated = true;
+    }
+
     await insertAudit(c, {
       companyId: id,
       action: 'company.created',
@@ -92,6 +105,7 @@ export async function createCompany(
       vendorRoleId: defaultRoles.vendorRoleId,
       adminUserCreated,
       adminUserId,
+      trialLicensesActivated,
     };
   });
 }
