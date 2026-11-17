@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../shared/auth/AuthProvider';
 import { CompanyPicker } from '../shared/ui/CompanyPicker';
 import { Logo } from '../shared/ui/Logo';
+import { NavIcon, type NavIconName } from '../shared/ui/NavIcon';
 import { LANGUAGES } from '../i18n';
 
 export function Layout() {
@@ -44,38 +45,40 @@ export function Layout() {
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     isActive ? 'sidebar__link sidebar__link--active' : 'sidebar__link';
 
-  // Menú lateral organizado en grupos plegables.
+  // Menú lateral organizado en grupos plegables. Cada opción lleva su icono
+  // (una llave para Licencias, etc.) además del texto, para reconocerla
+  // de un vistazo y no solo por las letras.
   const [closedGroups, setClosedGroups] = useState<Record<string, boolean>>({});
   const toggleGroup = (label: string) =>
     setClosedGroups((prev) => ({ ...prev, [label]: !prev[label] }));
-  const navGroups: Array<{ label: string; links: Array<{ to: string; label: string }> }> = [
+  const navGroups: Array<{ label: string; links: Array<{ to: string; label: string; icon: NavIconName }> }> = [
     {
       label: 'Ventas',
       links: [
-        { to: '/ventas', label: 'Ventas' },
-        { to: '/facturas', label: 'Facturas' },
-        { to: '/caja', label: 'Caja' },
-        { to: '/clientes', label: 'Clientes' },
+        { to: '/ventas', label: 'Ventas', icon: 'sales' },
+        { to: '/facturas', label: 'Facturas', icon: 'invoices' },
+        { to: '/caja', label: 'Caja', icon: 'cash' },
+        { to: '/clientes', label: 'Clientes', icon: 'customers' },
       ],
     },
     {
       label: 'Inventario',
       links: [
-        { to: '/productos', label: 'Productos' },
-        { to: '/categorias', label: 'Categorías' },
-        { to: '/inventario', label: 'Inventario' },
-        { to: '/proveedores', label: 'Proveedores' },
-        { to: '/compras', label: 'Compras' },
+        { to: '/productos', label: 'Productos', icon: 'products' },
+        { to: '/categorias', label: 'Categorías', icon: 'categories' },
+        { to: '/inventario', label: 'Inventario', icon: 'inventory' },
+        { to: '/proveedores', label: 'Proveedores', icon: 'suppliers' },
+        { to: '/compras', label: 'Compras', icon: 'purchases' },
       ],
     },
     {
       label: 'Administración',
       links: [
-        { to: '/usuarios', label: t('nav.users', 'Usuarios') },
-        { to: '/roles', label: t('nav.roles', 'Roles') },
-        { to: '/reportes', label: 'Reportes' },
-        { to: '/auditoria', label: 'Auditoría' },
-        { to: '/configuracion', label: 'Configuración' },
+        { to: '/usuarios', label: t('nav.users', 'Usuarios'), icon: 'users' },
+        { to: '/roles', label: t('nav.roles', 'Roles'), icon: 'roles' },
+        { to: '/reportes', label: 'Reportes', icon: 'reports' },
+        { to: '/auditoria', label: 'Auditoría', icon: 'audit' },
+        { to: '/configuracion', label: 'Configuración', icon: 'settings' },
       ],
     },
   ];
@@ -88,7 +91,8 @@ export function Layout() {
         </div>
         <nav className="sidebar__nav">
           <NavLink to="/inicio" className={linkClass}>
-            Inicio
+            <NavIcon name="home" />
+            <span>Inicio</span>
           </NavLink>
           {isPlatform && (
             <section className="sidebar__group">
@@ -99,15 +103,19 @@ export function Layout() {
                 aria-expanded={!closedGroups['Plataforma']}
               >
                 <span>Plataforma</span>
-                <span aria-hidden="true">{closedGroups['Plataforma'] ? '▸' : '▾'}</span>
+                <span className={`sidebar__chevron${closedGroups['Plataforma'] ? ' sidebar__chevron--closed' : ''}`} aria-hidden="true">
+                  <NavIcon name="chevron" size={14} />
+                </span>
               </button>
               {!closedGroups['Plataforma'] && (
                 <div className="sidebar__group-links">
                   <NavLink to="/empresas" className={linkClass}>
-                    {t('nav.companies', 'Empresas')}
+                    <NavIcon name="companies" />
+                    <span>{t('nav.companies', 'Empresas')}</span>
                   </NavLink>
                   <NavLink to="/licencias" className={linkClass}>
-                    Licencias
+                    <NavIcon name="licenses" />
+                    <span>Licencias</span>
                   </NavLink>
                 </div>
               )}
@@ -122,13 +130,16 @@ export function Layout() {
                 aria-expanded={!closedGroups[group.label]}
               >
                 <span>{group.label}</span>
-                <span aria-hidden="true">{closedGroups[group.label] ? '▸' : '▾'}</span>
+                <span className={`sidebar__chevron${closedGroups[group.label] ? ' sidebar__chevron--closed' : ''}`} aria-hidden="true">
+                  <NavIcon name="chevron" size={14} />
+                </span>
               </button>
               {!closedGroups[group.label] && (
                 <div className="sidebar__group-links">
                   {group.links.map((link) => (
                     <NavLink key={link.to} to={link.to} className={linkClass}>
-                      {link.label}
+                      <NavIcon name={link.icon} />
+                      <span>{link.label}</span>
                     </NavLink>
                   ))}
                 </div>
