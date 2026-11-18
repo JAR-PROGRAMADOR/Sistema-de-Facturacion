@@ -510,7 +510,7 @@ body { margin: 0; }
 }
 @media (max-width: 480px) {
   .dashboard__hero-header { flex-direction: column; }
-  .dashboard__metrics { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .dashboard__metrics { grid-template-columns: 1fr; gap: 8px; }
   .dashboard__metric { padding: 13px; }
   .dashboard__metric-label { font-size: .72rem; }
   .dashboard__metric strong { font-size: 1.25rem; }
@@ -1222,7 +1222,9 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--color-primary)
 @media (max-width: 560px) {
   .app-shell--dashboard .dashboard__hero-header { flex-direction: column; }
   .dashboard__hero-actions { width: 100%; align-items: flex-start; flex-direction: row; justify-content: space-between; }
-  .app-shell--dashboard .dashboard__metrics { grid-template-columns: 1fr 1fr; gap: 9px; }
+  /* En móvil las tarjetas van en 1 columna: la regla del PR #20 (0,1,0)
+     perdía contra esta (0,2,0) y el panel seguía en 2 columnas. */
+  .app-shell--dashboard .dashboard__metrics { grid-template-columns: 1fr; gap: 10px; }
   .app-shell--dashboard .dashboard__metric { min-height: 166px; padding: 14px; }
   .dashboard__metric-period { font-size: .52rem; }
   .dashboard__mini-bars { right: 12px; bottom: 13px; }

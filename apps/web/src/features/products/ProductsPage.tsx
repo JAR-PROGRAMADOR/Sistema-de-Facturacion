@@ -98,28 +98,30 @@ export function ProductsPage() {
       <section className="panel">
         <h3>Listado</h3>
         {isLoading ? <p>Cargando...</p> : (
-          <table>
-            <thead>
-              <tr>
-                <th>SKU</th>
-                <th>Nombre</th>
-                <th>Tipo</th>
-                <th>Precio</th>
-                <th>Stock</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(data?.items ?? []).map((product) => (
-                <tr key={product.id}>
-                  <td>{product.sku}</td>
-                  <td>{product.name}</td>
-                  <td>{product.type}</td>
-                  <td>{product.price.toFixed(2)}</td>
-                  <td>{product.trackStock ? 'Sí' : 'No'}</td>
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>SKU</th>
+                  <th>Nombre</th>
+                  <th>Tipo</th>
+                  <th>Precio</th>
+                  <th>Stock</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {(data?.items ?? []).map((product) => (
+                  <tr key={product.id}>
+                    <td>{product.sku}</td>
+                    <td>{product.name}</td>
+                    <td>{product.type}</td>
+                    <td>{product.price.toFixed(2)}</td>
+                    <td>{product.trackStock ? 'Sí' : 'No'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </div>

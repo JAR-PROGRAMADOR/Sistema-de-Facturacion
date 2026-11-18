@@ -61,26 +61,28 @@ export function InventoryPage() {
       <section className="panel">
         <h3>Existencias</h3>
         {isLoading ? <p>Cargando...</p> : (
-          <table>
-            <thead>
-              <tr>
-                <th>Producto</th>
-                <th>SKU</th>
-                <th>Cantidad</th>
-                <th>Mínimo</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(data?.items ?? []).map((item) => (
-                <tr key={item.product_id}>
-                  <td>{item.name}</td>
-                  <td>{item.sku}</td>
-                  <td>{item.quantity}</td>
-                  <td>{item.min_stock}</td>
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>SKU</th>
+                  <th>Cantidad</th>
+                  <th>Mínimo</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {(data?.items ?? []).map((item) => (
+                  <tr key={item.product_id}>
+                    <td>{item.name}</td>
+                    <td>{item.sku}</td>
+                    <td>{item.quantity}</td>
+                    <td>{item.min_stock}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </div>
