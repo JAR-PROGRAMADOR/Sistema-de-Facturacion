@@ -462,7 +462,11 @@ body { margin: 0; }
 @media (max-width: 760px) {
   /* En móvil el menú lateral es un cajón fijo a la izquierda: fuera de la
      pantalla hasta que se abre con el botón de hamburguesa del encabezado. */
-  .app-shell { grid-template-columns: minmax(0, 1fr); }
+  /* Una sola columna en móvil: la regla base de la sección de temas viejos
+     (.app-shell 258px, más adelante en el archivo) tiene la misma
+     especificidad y viene después, así que sin duplicar la clase esta regla
+     no mandaba y el contenido quedaba limitado a 258px de ancho. */
+  .app-shell.app-shell { grid-template-columns: minmax(0, 1fr); }
   .sidebar {
     position: fixed;
     top: 0;
